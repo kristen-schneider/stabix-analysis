@@ -55,7 +55,7 @@ def read_col_size_file(file_path, col_sizes_dict):
 
     return col_sizes_dict
 
-def get_col_size_data(col_sizes_dict):
+def get_col_size_by_data_type(col_sizes_dict):
     '''
     '''
 
@@ -85,9 +85,9 @@ def get_col_size_data(col_sizes_dict):
 
     return col_size_data
 
-def plot_col_sizes(col_size_data,
-                   codec_colors,
-                   output_dir):
+def plot_col_size_by_data_type(col_size_data,
+                               codec_colors,
+                               output_dir):
     '''
     make a separate plot for each datatype
     :param col_size_data:
@@ -134,41 +134,109 @@ def plot_col_sizes(col_size_data,
             ax[i].set_xlabel('Column Size (bytes)', fontsize=14)
 
 
-            # if i == 3:
-            #     ax[i].set_xlabel('Column Size (bytes)', fontsize=14)
-            # else:
-            #     ax[i].set_xlabel('')
-            #     ax[i].set_xticks([])
-
-
             # remove spines
             ax[i].spines['top'].set_visible(False)
             ax[i].spines['right'].set_visible(False)
 
 
+        plt.tight_layout()
+        plt.savefig(out_file)
 
+def get_col_size_by_column(col_sizes_dict):
+    '''
+
+    '''
+    col_size_data = {col_idx: defaultdict(dict) for col_idx in range(10)}
+
+    for codec in col_sizes_dict:
+        for block_size in col_sizes_dict[codec]:
+            for col_idx in col_sizes_dict[codec][block_size]:
+                col_sizes = col_sizes_dict[codec][block_size][col_idx]
+                if codec not in col_size_data[col_idx]:
+                    col_size_data[col_idx][codec] = []
+                col_size_data[col_idx][codec].extend(col_sizes)
+
+    return col_size_data
+
+def plot_col_size_by_column(col_size_data,
+                            codec_colors,
+                            output_dir):
+
+    codecs = ['bz2', 'deflate', 'fpfvb', 'xz', 'zlib', 'zstd']
+    block_sizes = ['2000', '5000', '10000', '20000']
+
+    # five throuh 9: effect_allele_frequency	beta	standard_error	z	p_value
+    col_name_dict = {0: 'ID', 1: 'Chromosome', 2: 'Position',
+                     3: 'Effect Allele', 4: 'Other Allele',
+                     5: 'Effect Allele Frequency', 6: 'Beta',
+                     7: 'Standard Error', 8: 'Z', 9: 'P Value'}
+
+    # create new output file for each block size
+    for block_size in block_sizes:
+        out_file = os.path.join(output_dir, f'col_sizes_{block_size}_fpf_column.png')
+
+        # create a subplot for each data type
+        fig, ax = plt.subplots(5, 2,
+                               figsize=(10, 12), dpi=300)
+        # sharex=True)
+
+        # 5 rows, 2 columns
+        for i, col_idx in enumerate(range(10)):
+            title = f'Column {col_idx}: {col_name_dict[col_idx]}'
+            ax[i // 2, i % 2].set_title(title, fontsize=16, fontweight='bold')
+            ax[i // 2, i % 2].set_ylabel('Density', fontsize=14)
+            block_data = []
+            colors = []
+            for codec in codecs:
+                if codec not in col_size_data[col_idx]:
+                    continue
+                colors.append(codec_colors[codec])
+                block_data.append(col_size_data[col_idx][codec])
+
+            sns.kdeplot(data=block_data, ax=ax[i // 2, i % 2],
+                        fill=False, common_norm=True, palette=colors)
+
+            # legend for codecs
+            if i == 0:
+                legend_elements = [Line2D([0], [0], color=colors[i], lw=4, label=codec)
+                                   for i, codec in enumerate(codecs) if codec in col_size_data[col_idx]]
+                ax[i // 2, i % 2].legend(handles=legend_elements, loc='upper right', frameon=False)
+            else:
+                ax[i // 2, i % 2].legend().set_visible(False)
+
+            ax[i // 2, i % 2].set_xlabel('Column Size (bytes)', fontsize=14)
+
+            # remove spines
+            ax[i // 2, i % 2].spines['top'].set_visible(False)
+            ax[i // 2, i % 2].spines['right'].set_visible(False)
 
 
         plt.tight_layout()
         plt.savefig(out_file)
+
 
 def main():
     args = parse_args()
     col_size_files = os.listdir(args.col_size_dir)
     col_size_files = [f for f in col_size_files if f.endswith('.csv')]
 
-    col_sizes_dict = defaultdict(dict)
+    codec_colors = utils.read_colors(args.colors)
 
+    col_sizes_dict = defaultdict(dict)
     for col_size_file in col_size_files:
         col_size_file_path = os.path.join(args.col_size_dir, col_size_file)
         col_sizes_dict = read_col_size_file(col_size_file_path,
                                        col_sizes_dict)
 
-    col_size_data = get_col_size_data(col_sizes_dict)
-    codec_colors = utils.read_colors(args.colors)
-    plot_col_sizes(col_size_data,
-                   codec_colors,
-                   args.output_dir)
+    # col_sizes_by_data_type = get_col_size_by_data_type(col_sizes_dict)
+    # plot_col_size_by_data_type(col_sizes_by_data_type,
+    #                            codec_colors,
+    #                            args.output_dir)
+
+    col_sizes_by_column = get_col_size_by_column(col_sizes_dict)
+    plot_col_size_by_column(col_sizes_by_column,
+                            codec_colors,
+                            args.output_dir)
 
 
 

@@ -21,6 +21,7 @@ python src/plot_col_sizes.py \
      --output_dir figures/ \
      --colors figures/colors.txt
 ```
+**BY DATA TYPE**
 <details>
 
 | block size | with fastpfor                             | without fastpfor                            |
@@ -29,5 +30,17 @@ python src/plot_col_sizes.py \
 | 5000       | ![5000](figures/col_sizes_5000_fpf.png)   | ![5000](figures/col_sizes_5000_nofpf.png)   |
 | 10000      | ![10000](figures/col_sizes_10000_fpf.png) | ![10000](figures/col_sizes_10000_nofpf.png) |
 | 20000      | ![20000](figures/col_sizes_20000_fpf.png) | ![20000](figures/col_sizes_20000_nofpf.png) |
+
+</details>
+
+**BY COLUMN**
+<details>
+
+| block size | with fastpfor                                  | without fastpfor                            |
+|------------|------------------------------------------------|---------------------------------------------|
+| 2000       | ![2000](figures/col_sizes_2000_fpf_column.png) | ![2000](figures/col_sizes_2000_nofpf_column.png)   |
+| 5000       | ![5000](figures/col_sizes_5000_fpf_column.png)        | ![5000](figures/col_sizes_5000_nofpf_column.png)   |
+| 10000      | ![10000](figures/col_sizes_10000_fpf_column.png)      | ![10000](figures/col_sizes_10000_nofpf_column.png) |
+| 20000      | ![20000](figures/col_sizes_20000_fpf_column.png)      | ![20000](figures/col_sizes_20000_nofpf_column.png) |
 
 </details>
