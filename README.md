@@ -17,7 +17,9 @@ python scripts/plot_file_sizes.py \
 ### Plot column sizes by codec and block size
 ```
 python src/plot_col_sizes.py \
-    --c
+    --col_size_dir data/col_sizes \
+     --output_dir figures/ \
+     --colors figures/colors.txt
 ```
 <details>
 
