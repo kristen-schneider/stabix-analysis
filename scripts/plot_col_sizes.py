@@ -6,6 +6,8 @@ import seaborn as sns
 from matplotlib.patches import Patch
 from matplotlib.lines import Line2D
 
+import utils
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Plot column sizes')
@@ -99,14 +101,17 @@ def plot_col_sizes(col_size_data,
 
     # create new output file for each block size
     for block_size in block_sizes:
-        out_file = os.path.join(output_dir, f'col_sizes_{block_size}.png')
+        out_file = os.path.join(output_dir, f'col_sizes_{block_size}_nofpf.png')
 
         # create a subplot for each data type
         fig, ax = plt.subplots(4, 1,
                                figsize=(10, 10), dpi=300)
-                               # sharex=True, sharey=True)
+                               # sharex=True)
+
         for i, data_type in enumerate(data_types):
-            ax[i].set_title(data_type)
+            title = f'{data_type.capitalize()} data'
+            ax[i].set_title(title, fontsize=16, fontweight='bold')
+            ax[i].set_ylabel('Density', fontsize=14)
             block_data = []
             colors = []
             for codec in codecs:
@@ -116,32 +121,36 @@ def plot_col_sizes(col_size_data,
                 block_data.append(col_size_data[data_type][block_size][codec])
 
             sns.kdeplot(data=block_data, ax=ax[i],
-                        fill=True, common_norm=True, palette=colors)
+                        fill=False, common_norm=True, palette=colors)
 
             # legend for codecs
-            legend_elements = [Line2D([0], [0], color=colors[i], lw=4, label=codec)
-                                 for i, codec in enumerate(codecs) if codec in col_size_data[data_type][block_size]]
-            ax[i].legend(handles=legend_elements, loc='upper right')
+            if i == 0:
+                legend_elements = [Line2D([0], [0], color=colors[i], lw=4, label=codec)
+                                     for i, codec in enumerate(codecs) if codec in col_size_data[data_type][block_size]]
+                ax[i].legend(handles=legend_elements, loc='upper right', frameon=False)
+            else:
+                ax[i].legend().set_visible(False)
+
+            ax[i].set_xlabel('Column Size (bytes)', fontsize=14)
+
+
+            # if i == 3:
+            #     ax[i].set_xlabel('Column Size (bytes)', fontsize=14)
+            # else:
+            #     ax[i].set_xlabel('')
+            #     ax[i].set_xticks([])
+
+
+            # remove spines
+            ax[i].spines['top'].set_visible(False)
+            ax[i].spines['right'].set_visible(False)
+
+
 
 
 
         plt.tight_layout()
         plt.savefig(out_file)
-
-
-def read_colors(colors_file):
-    '''
-    read comma delimited colors file and store in a dict
-    :param colors_file:
-    :return:
-    '''
-    colors = {}
-    with open(colors_file, 'r') as f:
-        for line in f:
-            codec, color = line.strip().split(',')
-            colors[codec] = color
-
-    return colors
 
 def main():
     args = parse_args()
@@ -156,7 +165,7 @@ def main():
                                        col_sizes_dict)
 
     col_size_data = get_col_size_data(col_sizes_dict)
-    codec_colors = read_colors(args.colors)
+    codec_colors = utils.read_colors(args.colors)
     plot_col_sizes(col_size_data,
                    codec_colors,
                    args.output_dir)
