@@ -1,0 +1,6 @@
+bz2,darkorange
+deflate,steelblue
+fpfvb,salmon
+xz,olivedrab
+zlib,hotpink
+zstd,mediumpurple
