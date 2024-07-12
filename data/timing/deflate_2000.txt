@@ -1,0 +1,64 @@
+Reading config options from: config_files/deflate_config.yml
+	...gwas_file: /Users/krsc0813/CLionProjects/gwas_local/gwas_files/GCST90179150_buildGRCh37.tsv
+	...block_size: 2000
+	...query_type: coordinate
+	...codecs_list: deflate,deflate,deflate,deflate,deflate,deflate,deflate,deflate,deflate,deflate
+	...compressed_file: /Users/krsc0813/CLionProjects/gwas_local/gwas_files/GCST90179150_buildGRCh37.tsv.grlz
+Done.
+
+Reading file header...
+	...column names: variant_id,chromosome,base_pair_location,effect_allele,other_allele,effect_allele_frequency,beta,standard_error,z,p_value
+	...num columns: 10
+Done.
+
+File already sorted by chromosome and genomic position.
+Making blocks...
+	...made 3102 blocks of size 2000 or less.
+Done.
+
+Compressing blocks...
+Wrote compressed block sizes to: /Users/krsc0813/CLionProjects/gwas_local/gwas_files/GCST90179150_buildGRCh37.tsv.grlz_2000_sizes.csv
+Done.
+
+Compressing header...
+Done.
+
+Writing compressed file to: /Users/krsc0813/CLionProjects/gwas_local/gwas_files/GCST90179150_buildGRCh37.tsv.grlz
+Done.
+Reading config options from: config_files/deflate_config.yml
+Done.
+
+Opening compressed file and reading header...
+Done.
+
+Writing index file to: /Users/krsc0813/CLionProjects/gwas_local/gwas_files/GCST90179150_buildGRCh37.tsv.grlz.idx
+Done.
+
+Reading config options...
+	...config_files/deflate_config.yml
+Opening output file: /Users/krsc0813/CLionProjects/gwas_local/gwas_files/GCST90179150_buildGRCh37.tsv.query
+Done.
+
+Opening compressed file and reading header...
+Done.
+
+Opening index file...
+	.../Users/krsc0813/CLionProjects/gwas_local/gwas_files/GCST90179150_buildGRCh37.tsv.grlz.idx
+Done.
+
+Decompressing all blocks for each query...
+...decompressing query 1: 1:693731-758144
+......decompressing block 0, size: 2000
+......writing decompressed block to output file
+...decompressing query 2: 1:798900-845000
+......decompressing block 0, size: 2000
+......writing decompressed block to output file
+...decompressing query 3: 18:65659994-67800000
+......decompressing block 2854, size: 2000
+......writing decompressed block to output file
+......decompressing block 2855, size: 2000
+......writing decompressed block to output file
+......decompressing block 2856, size: 2000
+......writing decompressed block to output file
+......decompressing block 2857, size: 2000
+......writing decompressed block to output file

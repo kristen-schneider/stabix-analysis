@@ -14,31 +14,7 @@ def parse_args():
     parser.add_argument('-p', '--plot_dir', help='output directory to save plots', required=True)
     return parser.parse_args()
 
-def read_gwas_file_names(gwas_names_file):
-    '''
-    Read the names of the gwas files from a file
-    :param gwas_names_file: text file containing the names of the gwas files to include in plot
-    :return: list of gwas file names
-    '''
-    gwas_files = []
-    with open(gwas_names_file, 'r') as f:
-        for line in f:
-            gwas_files.append(line.strip())
-    return gwas_files
 
-def read_gwas_file_sizes(gwas_sizes_file):
-    '''
-    Read the file sizes of the gwas files from a file
-    :param gwas_sizes_file: text file containing the file sizes of the gwas files
-    :return: dictionary of file names and their sizes in bytes
-    '''
-    file_sizes = {}
-    with open(gwas_sizes_file, 'r') as f:
-        header = f.readline()
-        for line in f:
-            file_name, file_size = line.strip().split(', ')
-            file_sizes[file_name] = int(file_size)
-    return file_sizes
 
 def plot_file_sizes(gwas_file_names,
                     file_sizes,
@@ -129,8 +105,8 @@ def main():
     block_sizes = [2000, 5000, 10000, 20000, 'map']
     codec_colors = utils.read_colors(colors)
 
-    gwas_file_names = read_gwas_file_names(file_names)
-    gwas_file_sizes = read_gwas_file_sizes(file_sizes)
+    gwas_file_names = utils.read_gwas_file_names(file_names)
+    gwas_file_sizes = utils.read_gwas_file_sizes(file_sizes)
 
     plot_file_sizes(gwas_file_names,
                     gwas_file_sizes,

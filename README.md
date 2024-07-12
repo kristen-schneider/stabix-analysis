@@ -44,3 +44,18 @@ python src/plot_col_sizes.py \
 | 20000      | ![20000](figures/col_sizes_20000_fpf_column.png)      | ![20000](figures/col_sizes_20000_nofpf_column.png) |
 
 </details>
+
+### Plot decompression time by compression size
+```
+python src/plot_size_time.py \
+    --file_sizes data/gwas_file_sizes.csv \
+    --timing_dir data/timing/ \
+    --colors figures/colors.txt \
+    --output_dir figures/
+```
+**BY BLOCK SIZE**
+<details>
+
+![timing_size](figures/decompression_time_vs_size.png)
+
+</details>
