@@ -71,30 +71,38 @@ def read_timing_file(timing_file,
                 codec = line.split(': ')[1].strip()
             elif 'Compressing...' in line:
                 total_time = f.readline().split()[7]
-                try:
-                    minutes = int(total_time.split(':')[0]) * 60
-                    seconds = float(total_time.split(':')[1])
-                except:
-                    minutes = 0
-                    seconds = float(total_time)
-                timing[codec]['compression'] = minutes + seconds
+                timing[codec]['compression'] = convert_to_seconds(total_time)
             elif 'Indexing...' in line:
                 total_time = f.readline().split()[8]
-                try:
-                    minutes = int(total_time.split(':')[0]) * 60
-                    seconds = float(total_time.split(':')[1])
-                except:
-                    minutes = 0
-                    seconds = float(total_time)
-                timing[codec]['indexing'] = minutes + seconds
+                timing[codec]['indexing'] = convert_to_seconds(total_time)
             elif 'Decompressing...' in line:
                 total_time = f.readline().split()[7]
-                try:
-                    minutes = int(total_time.split(':')[0]) * 60
-                    seconds = float(total_time.split(':')[1])
-                except:
-                    minutes = 0
-                    seconds = float(total_time)
-                timing[codec]['decompression'] = minutes + seconds
+                timing[codec]['decompression'] = convert_to_seconds(total_time)
 
     return timing
+
+def convert_to_seconds(time_str):
+    '''
+    Convert a time string in the format of HH:MM:SS to seconds
+    :param time_str: time string in the format of HH:MM:SS
+    :return: time in seconds
+    '''
+    hours = 0
+    minutes = 0
+    seconds = 0
+
+    try:
+        hours = int(time_str.split(':')[0]) * 3600
+        minutes = int(time_str.split(':')[1]) * 60
+        seconds = float(time_str.split(':')[2])
+    except:
+        try:
+            hours = 0
+            minutes = int(time_str.split(':')[0]) * 60
+            seconds = float(time_str.split(':')[1])
+        except:
+            hours = 0
+            minutes = 0
+            seconds = float(time_str)
+
+    return hours + minutes + seconds

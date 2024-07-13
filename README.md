@@ -46,6 +46,10 @@ python src/plot_col_sizes.py \
 </details>
 
 ### Plot decompression time by compression size
+Decompression time is measured by the time it takes to decompress the full file.<br>
+In this example, there are 3 queries.<br>
+- The first two queries only ever decompress a single block.
+- The third query decompresses up to 4 blocks (when block size = 2000)
 ```
 python src/plot_size_time.py \
     --file_sizes data/gwas_file_sizes.csv \

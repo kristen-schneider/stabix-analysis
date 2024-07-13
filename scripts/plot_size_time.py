@@ -39,7 +39,7 @@ def plot_timing_vs_size(timing_data,
     # y-axis: compressed data size
     # one subplot for each block size
 
-    fig, axs = plt.subplots(len(markers), 1, figsize=(10, 12))
+    fig, axs = plt.subplots(len(markers), 1, figsize=(8, 14), sharex=False, sharey=True)
     for i, block_size in enumerate(timing_data):
         color_list = []
         decompression_times = []
@@ -57,6 +57,9 @@ def plot_timing_vs_size(timing_data,
                     alpha=0.7,
                     label=block_size)
 
+        # add a horizontal line for the gzipped file size
+        axs[i].axhline(y=file_sizes['GCST90179150_buildGRCh37.tsv.gz'], color='black', linestyle='--', label='gz')
+
         axs[i].set_xlabel('Decompression Time (s)')
         axs[i].set_ylabel('Compressed Data Size (bytes)')
         axs[i].set_title('Decompression Time vs Compressed Data Size' + '\n(block size: ' + str(block_size) + ')')
@@ -67,9 +70,11 @@ def plot_timing_vs_size(timing_data,
         # legend for codecs
         codec_legend_elements = [Patch(facecolor=colors[codec], edgecolor='black', label=codec)
                                 for codec in colors]
+        codec_legend_elements.append(Line2D([0], [0], color='black', linestyle='--', label='gz'))
 
         if i == 0:
-            axs[i].legend(handles=codec_legend_elements, title='Codec', loc='upper left', frameon=False)
+            # make legend into two columns
+            axs[i].legend(handles=codec_legend_elements, title='Codec', loc='upper left', frameon=True, ncol=3)
 
     plt.tight_layout()
     plt.savefig(output_dir + 'decompression_time_vs_size.png')
@@ -83,7 +88,7 @@ def main():
     file_sizes = utils.read_gwas_file_sizes(args.file_sizes)
 
     codecs = ['bz2', 'deflate', 'fpfvb', 'xz', 'zlib', 'zstd']
-    block_sizes = [2000, 5000]
+    block_sizes = [2000, 5000, 10000, 20000]
     colors = utils.read_colors(args.colors)
     block_data = {block_size: defaultdict(dict) for block_size in block_sizes}
 
