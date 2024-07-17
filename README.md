@@ -60,6 +60,6 @@ python src/plot_size_time.py \
 **BY BLOCK SIZE**
 <details>
 
-![timing_size](figures/decompression_time_vs_size_old.png)
+![timing_size](figures/decompression_time_vs_size.png)
 
 </details>
