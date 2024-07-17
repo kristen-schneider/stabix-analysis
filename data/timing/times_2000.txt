@@ -1,42 +1,42 @@
 Running for codec: bz2
 Compressing...
-/Users/krsc0813/CLionProjects/gwas_local/cmake-build-debug/bin/gwas_compress   105.95s user 1.43s system 99% cpu 1:48.10 total
+/Users/krsc0813/CLionProjects/gwas_local/cmake-build-debug/bin/gwas_compress   106.77s user 1.29s system 99% cpu 1:48.78 total
 Indexing...
-/Users/krsc0813/CLionProjects/gwas_local/cmake-build-debug/bin/gwas_index  >>  5.14s user 0.12s system 99% cpu 5.308 total
+/Users/krsc0813/CLionProjects/gwas_local/cmake-build-debug/bin/gwas_index  >>  5.25s user 0.15s system 99% cpu 5.436 total
 Decompressing...
-/Users/krsc0813/CLionProjects/gwas_local/cmake-build-debug/bin/gwas_decompres  101.57s user 0.13s system 99% cpu 1:42.24 total
+/Users/krsc0813/CLionProjects/gwas_local/cmake-build-debug/bin/gwas_decompres  2.66s user 0.03s system 98% cpu 2.713 total
 Running for codec: deflate
 Compressing...
-/Users/krsc0813/CLionProjects/gwas_local/cmake-build-debug/bin/gwas_compress   133.86s user 0.85s system 99% cpu 2:15.45 total
+/Users/krsc0813/CLionProjects/gwas_local/cmake-build-debug/bin/gwas_compress   133.93s user 0.83s system 99% cpu 2:15.16 total
 Indexing...
-/Users/krsc0813/CLionProjects/gwas_local/cmake-build-debug/bin/gwas_index  >>  4.37s user 0.05s system 99% cpu 4.444 total
+/Users/krsc0813/CLionProjects/gwas_local/cmake-build-debug/bin/gwas_index  >>  4.24s user 0.05s system 99% cpu 4.321 total
 Decompressing...
-/Users/krsc0813/CLionProjects/gwas_local/cmake-build-debug/bin/gwas_decompres  103.12s user 0.10s system 99% cpu 1:43.50 total
+/Users/krsc0813/CLionProjects/gwas_local/cmake-build-debug/bin/gwas_decompres  2.64s user 0.03s system 98% cpu 2.700 total
 Running for codec: fpfvb
 Compressing...
-/Users/krsc0813/CLionProjects/gwas_local/cmake-build-debug/bin/gwas_compress   127.08s user 0.81s system 99% cpu 2:08.05 total
+/Users/krsc0813/CLionProjects/gwas_local/cmake-build-debug/bin/gwas_compress   125.59s user 0.87s system 99% cpu 2:06.89 total
 Indexing...
-/Users/krsc0813/CLionProjects/gwas_local/cmake-build-debug/bin/gwas_index  >>  8.13s user 0.05s system 99% cpu 8.197 total
+/Users/krsc0813/CLionProjects/gwas_local/cmake-build-debug/bin/gwas_index  >>  7.93s user 0.06s system 99% cpu 8.009 total
 Decompressing...
-/Users/krsc0813/CLionProjects/gwas_local/cmake-build-debug/bin/gwas_decompres  103.43s user 0.08s system 99% cpu 1:43.75 total
+/Users/krsc0813/CLionProjects/gwas_local/cmake-build-debug/bin/gwas_decompres  2.63s user 0.03s system 99% cpu 2.685 total
 Running for codec: xz
 Compressing...
-/Users/krsc0813/CLionProjects/gwas_local/cmake-build-debug/bin/gwas_compress   282.55s user 163.06s system 99% cpu 7:29.32 total
+/Users/krsc0813/CLionProjects/gwas_local/cmake-build-debug/bin/gwas_compress   281.10s user 147.27s system 99% cpu 7:11.32 total
 Indexing...
-/Users/krsc0813/CLionProjects/gwas_local/cmake-build-debug/bin/gwas_index  >>  5.02s user 0.26s system 99% cpu 5.322 total
+/Users/krsc0813/CLionProjects/gwas_local/cmake-build-debug/bin/gwas_index  >>  4.90s user 0.25s system 98% cpu 5.212 total
 Decompressing...
-/Users/krsc0813/CLionProjects/gwas_local/cmake-build-debug/bin/gwas_decompres  103.24s user 0.12s system 99% cpu 1:43.94 total
+/Users/krsc0813/CLionProjects/gwas_local/cmake-build-debug/bin/gwas_decompres  2.63s user 0.03s system 98% cpu 2.707 total
 Running for codec: zlib
 Compressing...
-/Users/krsc0813/CLionProjects/gwas_local/cmake-build-debug/bin/gwas_compress   134.10s user 0.95s system 99% cpu 2:15.69 total
+/Users/krsc0813/CLionProjects/gwas_local/cmake-build-debug/bin/gwas_compress   132.75s user 0.73s system 99% cpu 2:14.33 total
 Indexing...
-/Users/krsc0813/CLionProjects/gwas_local/cmake-build-debug/bin/gwas_index  >>  4.11s user 0.03s system 99% cpu 4.163 total
+/Users/krsc0813/CLionProjects/gwas_local/cmake-build-debug/bin/gwas_index  >>  4.04s user 0.03s system 99% cpu 4.108 total
 Decompressing...
-/Users/krsc0813/CLionProjects/gwas_local/cmake-build-debug/bin/gwas_decompres  103.34s user 0.08s system 99% cpu 1:43.96 total
+/Users/krsc0813/CLionProjects/gwas_local/cmake-build-debug/bin/gwas_decompres  2.58s user 0.03s system 98% cpu 2.644 total
 Running for codec: zstd
 Compressing...
-/Users/krsc0813/CLionProjects/gwas_local/cmake-build-debug/bin/gwas_compress   83.75s user 0.85s system 99% cpu 1:25.18 total
+/Users/krsc0813/CLionProjects/gwas_local/cmake-build-debug/bin/gwas_compress   82.18s user 0.71s system 99% cpu 1:23.40 total
 Indexing...
-/Users/krsc0813/CLionProjects/gwas_local/cmake-build-debug/bin/gwas_index  >>  4.33s user 0.11s system 99% cpu 4.480 total
+/Users/krsc0813/CLionProjects/gwas_local/cmake-build-debug/bin/gwas_index  >>  4.27s user 0.11s system 99% cpu 4.417 total
 Decompressing...
-/Users/krsc0813/CLionProjects/gwas_local/cmake-build-debug/bin/gwas_decompres  103.61s user 0.19s system 99% cpu 1:44.54 total
+/Users/krsc0813/CLionProjects/gwas_local/cmake-build-debug/bin/gwas_decompres  2.63s user 0.03s system 98% cpu 2.698 total

@@ -49,12 +49,12 @@ Done.
 Decompressing all blocks for each query...
 ...decompressing query 1: 1:693731-758144
 ......decompressing block 0, size: 5000
-......writing decompressed block to output file
+......writing decompressed block to output file NEW 
 ...decompressing query 2: 1:798900-845000
 ......decompressing block 0, size: 5000
-......writing decompressed block to output file
+......writing decompressed block to output file NEW 
 ...decompressing query 3: 18:65659994-67800000
 ......decompressing block 1142, size: 5000
-......writing decompressed block to output file
+......writing decompressed block to output file NEW 
 ......decompressing block 1143, size: 5000
-......writing decompressed block to output file
+......writing decompressed block to output file NEW 

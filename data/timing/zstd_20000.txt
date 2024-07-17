@@ -1,6 +1,6 @@
 Reading config options from: config_files/zstd_config.yml
 	...gwas_file: /Users/krsc0813/CLionProjects/gwas_local/gwas_files/GCST90179150_buildGRCh37.tsv
-	...block_size: 2000
+	...block_size: 20000
 	...query_type: coordinate
 	...codecs_list: zstd,zstd,zstd,zstd,zstd,zstd,zstd,zstd,zstd,zstd
 	...compressed_file: /Users/krsc0813/CLionProjects/gwas_local/gwas_files/GCST90179150_buildGRCh37.tsv.grlz
@@ -13,11 +13,11 @@ Done.
 
 File already sorted by chromosome and genomic position.
 Making blocks...
-	...made 3102 blocks of size 2000 or less.
+	...made 311 blocks of size 20000 or less.
 Done.
 
 Compressing blocks...
-Wrote compressed block sizes to: /Users/krsc0813/CLionProjects/gwas_local/gwas_files/GCST90179150_buildGRCh37.tsv.grlz_2000_sizes.csv
+Wrote compressed block sizes to: /Users/krsc0813/CLionProjects/gwas_local/gwas_files/GCST90179150_buildGRCh37.tsv.grlz_20000_sizes.csv
 Done.
 
 Compressing header...
@@ -48,17 +48,11 @@ Done.
 
 Decompressing all blocks for each query...
 ...decompressing query 1: 1:693731-758144
-......decompressing block 0, size: 2000
+......decompressing block 0, size: 20000
 ......writing decompressed block to output file NEW 
 ...decompressing query 2: 1:798900-845000
-......decompressing block 0, size: 2000
+......decompressing block 0, size: 20000
 ......writing decompressed block to output file NEW 
 ...decompressing query 3: 18:65659994-67800000
-......decompressing block 2854, size: 2000
-......writing decompressed block to output file NEW 
-......decompressing block 2855, size: 2000
-......writing decompressed block to output file NEW 
-......decompressing block 2856, size: 2000
-......writing decompressed block to output file NEW 
-......decompressing block 2857, size: 2000
+......decompressing block 285, size: 20000
 ......writing decompressed block to output file NEW 
