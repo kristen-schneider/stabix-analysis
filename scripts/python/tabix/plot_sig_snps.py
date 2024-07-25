@@ -102,7 +102,10 @@ def plot_snps_per_gene(trait_dict,
         for gene in trait_genes:
             snp_counts.append(len(trait_genes[gene]))
 
-        ax[row_j, col_i].hist(snp_counts, bins=20)
+        ax[row_j, col_i].hist(snp_counts, bins=20, color='darkorange', edgecolor='black', alpha=0.7)
+
+        # log scale
+        ax[row_j, col_i].set_yscale('log')
 
         # labeling
         ax[row_j, col_i].set_ylabel('Gene Count', fontsize=12)
@@ -153,7 +156,10 @@ def plot_pvalue_dist(trait_dict,
             for record in trait_genes[gene]:
                 p_values.append(float(record[9]))
 
-        ax[row_j, col_i].hist(p_values, bins=20)
+        ax[row_j, col_i].hist(p_values, bins=2, color='darkorange', edgecolor='black', alpha=0.7)
+
+        # log scale
+        ax[row_j, col_i].set_xscale('log')
 
         # labeling
         ax[row_j, col_i].set_ylabel('SNP Count', fontsize=12)
