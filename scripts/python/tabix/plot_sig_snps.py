@@ -85,12 +85,14 @@ def plot_snps_per_gene(trait_dict,
 
         # labeling
         ax[i].set_ylabel('Gene Count')
-        ax[i].set_xlabel('Number of Significant SNPs per Gene')
         ax[i].set_title(trait)
 
         # formatting
         ax[i].spines['top'].set_visible(False)
         ax[i].spines['right'].set_visible(False)
+
+    # add x-axis label to the last subplot
+    ax[-1].set_xlabel('Significant SNPs per Gene')
 
     plt.tight_layout()
     plt.savefig(figures_dir + 'snps_per_gene.png')
@@ -120,12 +122,14 @@ def plot_pvalue_dist(trait_dict,
 
         # labeling
         ax[i].set_ylabel('SNP Count')
-        ax[i].set_xlabel('P-Value')
         ax[i].set_title(trait)
 
         # formatting
         ax[i].spines['top'].set_visible(False)
         ax[i].spines['right'].set_visible(False)
+
+    # add x-axis label to the last subplot
+    ax[-1].set_xlabel('P-Value')
 
     plt.tight_layout()
     plt.savefig(figures_dir + 'pvalue_dist.png')

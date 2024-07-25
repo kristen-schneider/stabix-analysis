@@ -4,6 +4,6 @@ pvalue_threshold=5e-8
 
 python sandbox.py
   --bed data/hg19.protein_coding.bed
-  --gwas_list data/gwas_files.txt
+  --gwas_list data/gwas_file_names.txt
   --gwas_dir data/gwas_files/
-  --figures figures/
+  --figures figures/tabix/
