@@ -18,12 +18,12 @@ data_dir="/scratch/Users/krsc0813/gwas_data/"
 cd $data_dir
 
 gwas_url_list=(
+    "http://ftp.ebi.ac.uk/pub/databases/gwas/summary_statistics/GCST90179001-GCST90180000/GCST90179114/GCST90179114_buildGRCh37.tsv"
+    "http://ftp.ebi.ac.uk/pub/databases/gwas/summary_statistics/GCST90179001-GCST90180000/GCST90179115/GCST90179115_buildGRCh37.tsv"
+    "http://ftp.ebi.ac.uk/pub/databases/gwas/summary_statistics/GCST90179001-GCST90180000/GCST90179117/GCST90179117_buildGRCh37.tsv"
+    "http://ftp.ebi.ac.uk/pub/databases/gwas/summary_statistics/GCST90179001-GCST90180000/GCST90179149/GCST90179149_buildGRCh37.tsv"
     "http://ftp.ebi.ac.uk/pub/databases/gwas/summary_statistics/GCST90179001-GCST90180000/GCST90179150/GCST90179150_buildGRCh37.tsv"
     "http://ftp.ebi.ac.uk/pub/databases/gwas/summary_statistics/GCST90179001-GCST90180000/GCST90179151/GCST90179151_buildGRCh37.tsv"
-    "http://ftp.ebi.ac.uk/pub/databases/gwas/summary_statistics/GCST90179001-GCST90180000/GCST90179151/GCST90179152_buildGRCh37.tsv"
-    "http://ftp.ebi.ac.uk/pub/databases/gwas/summary_statistics/GCST90179001-GCST90180000/GCST90179179/GCST90179179_buildGRCh37.tsv.gz"
-    "http://ftp.ebi.ac.uk/pub/databases/gwas/summary_statistics/GCST90179001-GCST90180000/GCST90179320/GCST90179320_buildGRCh38.tsv.gz"
-    "http://ftp.ebi.ac.uk/pub/databases/gwas/summary_statistics/GCST90179001-GCST90180000/GCST90179411/GCST90179411_buildGRCh38.tsv.gz"
     )
 
 for url in "${gwas_url_list[@]}"
