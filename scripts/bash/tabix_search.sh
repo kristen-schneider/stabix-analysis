@@ -11,12 +11,14 @@
 #SBATCH --output=/scratch/Users/krsc0813/bash_scripts/out/tabix-search-gwas.out
 #SBATCH --error=/scratch/Users/krsc0813/bash_scripts/err/tabix-search-gwas.err
 
-gene_bed_file="hg19.protein_coding.bed"
+gwas_repo="/scratch/Users/krsc0813/gwas-analysis/"
+gene_bed_file=$gwas_repo"data/hg19.protein_coding.bed"
+gwas_files_list=$gwas_repo"data/gwas_file_names.csv"
 pvalue_idx=9
 pvalue_threshold=5e-8
 
 python sandbox.py
-  --bed data/hg19.protein_coding.bed
-  --gwas_list data/gwas_file_names.txt
-  --gwas_dir data/gwas_files/
-  --figures figures/tabix/
+  --bed $gene_bed_file
+  --gwas_list $gwas_files_list
+  --gwas_dir "/scratch/Users/krsc0813/gwas_data/"
+  --figures $gwas_repo"figures/tabix/

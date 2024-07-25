@@ -11,8 +11,8 @@
 #SBATCH --output=/scratch/Users/krsc0813/bash_scripts/out/tabix-index-gwas.out
 #SBATCH --error=/scratch/Users/krsc0813/bash_scripts/err/tabix-index-gwas.err
 
-gwas_file_dir="data/gwas_files/"
-gwas_file_csv="data/gwas_files.csv"
+gwas_file_dir="/scratch/Users/krsc0813/gwas_data/"
+gwas_file_csv="/scratch/Users/krsc0813/gwas-analysis/data/gwas_file_names.csv"
 
 # 1. read gwas_file_csv
 ## header format: file_name,trait,samples,link
