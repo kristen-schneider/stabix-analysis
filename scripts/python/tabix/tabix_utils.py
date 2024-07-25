@@ -18,7 +18,12 @@ def tabix_query(chrm,
     '''
     records = []
 
-    tb = tabix.open(gwas_file)
+    try:
+        tb = tabix.open(gwas_file)
+    except tabix.TabixError:
+        print('Error opening tabix file')
+        return records
+
     record = tb.query(chrm, start, end)
     for r in record:
         if float(r[p_value_idx]) <= p_value_threshold:

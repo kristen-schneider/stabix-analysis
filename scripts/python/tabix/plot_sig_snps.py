@@ -21,7 +21,16 @@ def plot_snps_genes_count(trait_dict,
     gene_counts = {}
     for trait in trait_dict:
         snp_counts[trait] = 0
-        gene_counts[trait] = len(trait_dict[trait])
+        trait_genes = 0
+
+        for gene in trait_dict[trait]:
+            if len(trait_dict[trait][gene]) > 0:
+                trait_genes += 1
+                gene_counts[trait] = trait_genes
+
+        if trait_genes == 0:
+            gene_counts[trait] = 0
+
         trait_genes = trait_dict[trait]
         for gene in trait_genes:
             snp_counts[trait] += len(trait_genes[gene])
@@ -38,7 +47,10 @@ def plot_snps_genes_count(trait_dict,
     ax.set_xlabel('Trait')
     ax.set_title('Gene and SNP Counts by Trait')
     ax.set_xticks(x)
-    ax.set_xticklabels(list(trait_dict.keys()))
+    # automatically wrap text for x labels
+    x_labels = list(trait_dict.keys())
+    x_labels = [x_label.replace(' ', '\n') for x_label in x_labels]
+    ax.set_xticklabels(x_labels)
     ax.legend()
 
     # formatting
@@ -60,7 +72,7 @@ def plot_snps_per_gene(trait_dict,
     :return: None
     '''
 
-    fig, ax = plt.subplots(len(trait_dict), 1, figsize=(10, 5),
+    fig, ax = plt.subplots(len(trait_dict), 1, figsize=(6, 12),
                            sharex=True, sharey=True)
 
     for i, trait in enumerate(trait_dict):
@@ -94,7 +106,7 @@ def plot_pvalue_dist(trait_dict,
     :return: None
     '''
 
-    fig, ax = plt.subplots(len(trait_dict), 1, figsize=(10, 5),
+    fig, ax = plt.subplots(len(trait_dict), 1, figsize=(6, 12),
                            sharex=True, sharey=True)
 
     for i, trait in enumerate(trait_dict):
