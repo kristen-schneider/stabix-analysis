@@ -1,1 +1,3 @@
 data/local_gwas_files/*
+*__pycache__*
+.idea/*
