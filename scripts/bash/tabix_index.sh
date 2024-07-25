@@ -1,3 +1,16 @@
+#!/usr/bin/env bash
+
+#SBATCH -p short
+#SBATCH --job-name=tabix-index-gwas
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=5
+#SBATCH --mem=32gb
+#SBATCH --time=20:00:00
+#SBATCH --mail-type=NONE
+#SBATCH --mail-user=name@email.com
+#SBATCH --output=/scratch/Users/krsc0813/bash_scripts/out/tabix-index-gwas.out
+#SBATCH --error=/scratch/Users/krsc0813/bash_scripts/err/tabix-index-gwas.err
+
 gwas_file_dir="data/gwas_files/"
 gwas_file_csv="data/gwas_files.csv"
 

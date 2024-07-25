@@ -11,7 +11,6 @@
 #SBATCH --output=/scratch/Users/krsc0813/bash_scripts/out/download-gwas.out
 #SBATCH --error=/scratch/Users/krsc0813/bash_scripts/err/download-gwas.err
 
-
 # download many GWAS summary statistics
 # http://ftp.ebi.ac.uk/pub/databases/gwas/summary_statistics/
 
