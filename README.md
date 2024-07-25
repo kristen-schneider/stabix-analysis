@@ -10,7 +10,7 @@ python scripts/plot_file_sizes.py \
 ```
 <details>
   
-![file_sizes](figures/GCST90179150_buildGRCh37_file_sizes.png)<br>
+![file_sizes](figures/sandbox/GCST90179150_buildGRCh37_file_sizes.png)<br>
 
 </details>
 
@@ -26,10 +26,10 @@ python src/plot_col_sizes.py \
 
 | block size | with fastpfor                             | without fastpfor                            |
 |------------|-------------------------------------------|---------------------------------------------|
-| 2000       | ![2000](figures/col_sizes_2000_fpf.png)   | ![2000](figures/col_sizes_2000_nofpf.png)   |
-| 5000       | ![5000](figures/col_sizes_5000_fpf.png)   | ![5000](figures/col_sizes_5000_nofpf.png)   |
-| 10000      | ![10000](figures/col_sizes_10000_fpf.png) | ![10000](figures/col_sizes_10000_nofpf.png) |
-| 20000      | ![20000](figures/col_sizes_20000_fpf.png) | ![20000](figures/col_sizes_20000_nofpf.png) |
+| 2000       | ![2000](figures/sandbox/col_sizes_2000_fpf.png)   | ![2000](figures/sandbox/col_sizes_2000_nofpf.png)   |
+| 5000       | ![5000](figures/sandbox/col_sizes_5000_fpf.png)   | ![5000](figures/sandbox/col_sizes_5000_nofpf.png)   |
+| 10000      | ![10000](figures/sandbox/col_sizes_10000_fpf.png) | ![10000](figures/sandbox/col_sizes_10000_nofpf.png) |
+| 20000      | ![20000](figures/sandbox/col_sizes_20000_fpf.png) | ![20000](figures/sandbox/col_sizes_20000_nofpf.png) |
 
 </details>
 
@@ -38,10 +38,10 @@ python src/plot_col_sizes.py \
 
 | block size | with fastpfor                                  | without fastpfor                            |
 |------------|------------------------------------------------|---------------------------------------------|
-| 2000       | ![2000](figures/col_sizes_2000_fpf_column.png) | ![2000](figures/col_sizes_2000_nofpf_column.png)   |
-| 5000       | ![5000](figures/col_sizes_5000_fpf_column.png)        | ![5000](figures/col_sizes_5000_nofpf_column.png)   |
-| 10000      | ![10000](figures/col_sizes_10000_fpf_column.png)      | ![10000](figures/col_sizes_10000_nofpf_column.png) |
-| 20000      | ![20000](figures/col_sizes_20000_fpf_column.png)      | ![20000](figures/col_sizes_20000_nofpf_column.png) |
+| 2000       | ![2000](figures/sandbox/col_sizes_2000_fpf_column.png) | ![2000](figures/sandbox/col_sizes_2000_nofpf_column.png)   |
+| 5000       | ![5000](figures/sandbox/col_sizes_5000_fpf_column.png)        | ![5000](figures/sandbox/col_sizes_5000_nofpf_column.png)   |
+| 10000      | ![10000](figures/sandbox/col_sizes_10000_fpf_column.png)      | ![10000](figures/sandbox/col_sizes_10000_nofpf_column.png) |
+| 20000      | ![20000](figures/sandbox/col_sizes_20000_fpf_column.png)      | ![20000](figures/sandbox/col_sizes_20000_nofpf_column.png) |
 
 </details>
 
@@ -60,6 +60,6 @@ python src/plot_size_time.py \
 **BY BLOCK SIZE**
 <details>
 
-![timing_size](figures/decompression_time_vs_size.png)
+![timing_size](figures/sandbox/decompression_time_vs_size.png)
 
 </details>
