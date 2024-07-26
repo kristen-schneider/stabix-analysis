@@ -17,8 +17,8 @@ gwas_files_list=$gwas_repo"data/gwas_file_names.csv"
 pvalue_idx=9
 pvalue_threshold=5e-8
 
-python sandbox.py
-  --bed $gene_bed_file
-  --gwas_list $gwas_files_list
-  --gwas_dir "/scratch/Users/krsc0813/gwas_data/"
-  --figures $gwas_repo"figures/tabix/
+python $gwas_repo"scripts/python/tabix/main.py"\
+  --bed $gene_bed_file\
+  --gwas_list $gwas_files_list\
+  --gwas_dir "/scratch/Users/krsc0813/gwas_data/"\
+  --figures $gwas_repo"figures/tabix/"

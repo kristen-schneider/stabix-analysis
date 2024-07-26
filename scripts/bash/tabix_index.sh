@@ -24,9 +24,10 @@ do
   echo "\tTrait: $trait"
   gwas_file_path=$gwas_file_dir$gwas_file".tsv"
 
-  # 2. reformat into bed file by removing the first column and double printing the 3rd column using tab delimiter
-  echo "\t...reformatting into bed file."
-  awk -v OFS='\t' '{print $2,$3,$3,$4,$5,$6,$7,$8,$9,$10}' $gwas_file_path > $gwas_file_dir${gwas_file}.bed
+  ## ALL THE GWAS FILES ARE DIFF FORMAT :)
+  ## 2. reformat into bed file by removing the first column and double printing the 3rd column using tab delimiter
+  #echo "\t...reformatting into bed file."
+  #awk -v OFS='\t' '{print $2,$3,$3,$4,$5,$6,$7,$8,$9,$10}' $gwas_file_path > $gwas_file_dir${gwas_file}.bed
 
   # 3. compress the file with bgzip
   echo "\t...compressing with bgzip."
