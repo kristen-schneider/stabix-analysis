@@ -94,7 +94,7 @@ def get_decompression_results(decomp_dir):
     '''
     Read in decompression results from a directory.
     '''
-    # gwas file: block_size: codec: size OR time
+    # gwas file: block_size: col_codec: size OR time
     col_comp_sizes = {}
     col_decomp_times = {}
 
@@ -108,25 +108,21 @@ def get_decompression_results(decomp_dir):
             # read in column compressed sizes
             col_sizes, col_times = read_decompression_results(os.path.join(decomp_dir, file))
             try:
-                col_comp_sizes[gwas_basename][block_size][codec_cocktail] = col_sizes
+                col_comp_sizes[gwas_basename][block_size].update(col_sizes)
             except KeyError:
                 try:
-                    col_comp_sizes[gwas_basename][block_size] = {}
-                    col_comp_sizes[gwas_basename][block_size][codec_cocktail] = col_sizes
+                    col_comp_sizes[gwas_basename][block_size] = col_sizes
                 except KeyError:
                     col_comp_sizes[gwas_basename] = {}
-                    col_comp_sizes[gwas_basename][block_size] = {}
-                    col_comp_sizes[gwas_basename][block_size][codec_cocktail] = col_sizes
+                    col_comp_sizes[gwas_basename][block_size] = col_sizes
             try:
-                col_decomp_times[gwas_basename][block_size][codec_cocktail] = col_times
+                col_decomp_times[gwas_basename][block_size].update(col_times)
             except KeyError:
                 try:
-                    col_decomp_times[gwas_basename][block_size] = {}
-                    col_decomp_times[gwas_basename][block_size][codec_cocktail] = col_times
+                    col_decomp_times[gwas_basename][block_size] = col_times
                 except KeyError:
                     col_decomp_times[gwas_basename] = {}
-                    col_decomp_times[gwas_basename][block_size] = {}
-                    col_decomp_times[gwas_basename][block_size][codec_cocktail] = col_times
+                    col_decomp_times[gwas_basename][block_size] = col_times
 
     return col_comp_sizes, col_decomp_times
 
@@ -201,6 +197,30 @@ def main():
 
     # get size and timing for kzip columns
     col_sizes, col_decomp_times = get_decompression_results(os.path.join(args.root, args.decomp))
+    # write column sizes and decompression times to output directory
+    # gwas file: block_size: codec: col_size
+    with open(os.path.join(args.out, 'column_sizes.csv'), 'w') as f:
+        f.write('block_size,codec,col_size\n')
+        for gwas_file in col_sizes:
+            f.write('gwas file,' + f'{gwas_file}' + '\n')
+            for block_size in col_sizes[gwas_file]:
+                for codec in col_sizes[gwas_file][block_size]:
+                    f.write(f'{block_size},{codec}')
+                    for col_size in col_sizes[gwas_file][block_size][codec]:
+                        f.write(f',{col_size}')
+                    f.write('\n')
+
+    # gwas file: block_size: codec: decomp_time
+    with open(os.path.join(args.out, 'column_decompression_times.csv'), 'w') as f:
+        f.write('block_size,codec,decomp_time\n')
+        for gwas_file in col_decomp_times:
+            f.write('gwas file,' + f'{gwas_file}' + '\n')
+            for block_size in col_decomp_times[gwas_file]:
+                for codec in col_decomp_times[gwas_file][block_size]:
+                    f.write(f'{block_size},{codec}')
+                    for decomp_time in col_decomp_times[gwas_file][block_size][codec]:
+                        f.write(f',{decomp_time}')
+                    f.write('\n')
     x = 'pause'
 
     # get overall compression times for kzip

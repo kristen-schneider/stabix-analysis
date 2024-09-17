@@ -22,7 +22,6 @@ def plot_file_sizes(gzip_sizes,
             avg_kzip_sizes[block_size][codec] = np.mean(kzip_sizes[block_size][codec])
 
     # plot the average sizes
-
     fig, ax = plt.subplots(1, 1, figsize=(15, 7), dpi=300)
     # y = size in bytes
     # x = block size

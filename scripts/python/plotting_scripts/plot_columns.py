@@ -11,7 +11,7 @@ def plot_column_scatter(column_sizes,
 
     # one scatter plot of column compressed sizes vs decompression times for each block size
     # color = codec cocktail
-    fig, ax = plt.subplots(4, 1, figsize=(15, 7), dpi=300)
+    fig, ax = plt.subplots(4, 1, figsize=(10, 15), dpi=300)
     for i, block_size in enumerate(column_sizes):
         for codec in column_sizes[block_size]:
             ax[i].scatter(column_sizes[block_size][codec],
@@ -19,11 +19,10 @@ def plot_column_scatter(column_sizes,
                           color=colors[codec],
                           s=20,
                           marker='o',
-                          edgecolor='black',
                           alpha=0.5)
-            ax[i].set_title(block_size)
-            ax[i].set_xlabel('Column compressed size (bytes)')
-            ax[i].set_ylabel('Decompression time (seconds)')
+            ax[i].set_title('Block Size: ' + block_size, fontsize=16, fontweight='bold')
+            ax[i].set_xlabel('Column compressed size\n(bytes)')
+            ax[i].set_ylabel('Decompression time\n(microseconds)')
 
     # FORMATTING
     # legend, no frame
@@ -36,6 +35,9 @@ def plot_column_scatter(column_sizes,
     for i in range(4):
         ax[i].spines['top'].set_visible(False)
         ax[i].spines['right'].set_visible(False)
+
+    # FORMATTING
+    plt.tight_layout()
 
     # SAVE
     plt.savefig(out_png)
