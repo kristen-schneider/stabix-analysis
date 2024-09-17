@@ -1,3 +1,4 @@
 data/local_gwas_files/*
+data/UKBB/*
 *__pycache__*
 .idea/*

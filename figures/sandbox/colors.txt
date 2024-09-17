@@ -1,6 +1,0 @@
-bz2,firebrick
-deflate,yellowgreen
-fpfvb,mediumpurple
-xz,darkorange
-zlib,deeppink
-zstd,steelblue
