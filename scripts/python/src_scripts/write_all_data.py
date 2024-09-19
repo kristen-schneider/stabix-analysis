@@ -12,7 +12,7 @@ import numpy as np
 import sys
 
 # GLOBAL VARIABLES
-CODEC_COCKTAILS = ['bz2', 'deflate', 'xz']
+CODEC_COCKTAILS = ['bz2', 'deflate']
 BLOCK_SIZES = [10000, 15000, 20000, 'map']
 
 # argumnnet parser
@@ -65,6 +65,9 @@ def get_file_sizes(gwas_files,
     # get file size for kzip
     # gwas file: block_size: codec: size
     kzip_sizes = defaultdict(dict)
+    kzip_gen_idx_sizes = defaultdict(dict)
+    kzip_pval_idx_sizes = defaultdict(dict)
+
     for gwas_file in gwas_files:
         for block_size in BLOCK_SIZES:
             for codec_cocktail in CODEC_COCKTAILS:
@@ -74,27 +77,52 @@ def get_file_sizes(gwas_files,
                 kzip_file_gen_idx = os.path.join(root,
                                                  gwas_file + '_' + str(block_size) + '_' + codec_cocktail,
                                                  'genomic.idx')
+                genomic_idx_size = os.path.getsize(kzip_file_gen_idx)
+                # not all have pval indexes yet
+                try:
+                    kzip_file_pval_idx = os.path.join(root,
+                                                    gwas_file + '_' + str(block_size) + '_' + codec_cocktail,
+                                                    'pval.idx')
+                    pval_idx_size = os.path.getsize(kzip_file_pval_idx)
+                except FileNotFoundError:
+                    # if pval.idx does not exist, set to 0
+                    pval_idx_size = 0
+                # fill in sizes
                 try:
                     kzip_sizes[gwas_file][block_size][codec_cocktail] = (
-                            os.path.getsize(kzip_file) + os.path.getsize(kzip_file_gen_idx))
+                            os.path.getsize(kzip_file))
+                    kzip_gen_idx_sizes[gwas_file][block_size][codec_cocktail] = genomic_idx_size
+                    kzip_pval_idx_sizes[gwas_file][block_size][codec_cocktail] = pval_idx_size
                 except KeyError:
                     try:
                         kzip_sizes[gwas_file][block_size] = {}
                         kzip_sizes[gwas_file][block_size][codec_cocktail] = (
-                            os.path.getsize(kzip_file)) + os.path.getsize(kzip_file_gen_idx)
+                                os.path.getsize(kzip_file))
+                        kzip_gen_idx_sizes[gwas_file][block_size] = {}
+                        kzip_gen_idx_sizes[gwas_file][block_size][codec_cocktail] = genomic_idx_size
+                        kzip_pval_idx_sizes[gwas_file][block_size] = {}
+                        kzip_pval_idx_sizes[gwas_file][block_size][codec_cocktail] = pval_idx_size
+
                     except KeyError:
                         kzip_sizes[gwas_file] = {}
                         kzip_sizes[gwas_file][block_size] = {}
                         kzip_sizes[gwas_file][block_size][codec_cocktail] = (
-                            os.path.getsize(kzip_file)) + os.path.getsize(kzip_file_gen_idx)
+                                os.path.getsize(kzip_file))
+                        kzip_gen_idx_sizes[gwas_file] = {}
+                        kzip_gen_idx_sizes[gwas_file][block_size] = {}
+                        kzip_gen_idx_sizes[gwas_file][block_size][codec_cocktail] = genomic_idx_size
+                        kzip_pval_idx_sizes[gwas_file] = {}
+                        kzip_pval_idx_sizes[gwas_file][block_size] = {}
+                        kzip_pval_idx_sizes[gwas_file][block_size][codec_cocktail] = pval_idx_size
 
-    return gzip_sizes, bgzip_sizes, kzip_sizes
+    return gzip_sizes, bgzip_sizes, kzip_sizes, kzip_gen_idx_sizes, kzip_pval_idx_sizes
 
-def get_decompression_results(decomp_dir):
+def get_decompression_results(decomp_dir,
+                              col_idx_data_type):
     '''
     Read in decompression results from a directory.
     '''
-    # gwas file: block_size: col_codec: size OR time
+    # gwas file: block_size: col_idx: col_codec: size OR time
     col_comp_sizes = {}
     col_decomp_times = {}
 
@@ -106,7 +134,8 @@ def get_decompression_results(decomp_dir):
             # get block size and codec
             block_size, codec_cocktail = file.split('_')[2], file.split('_')[3]
             # read in column compressed sizes
-            col_sizes, col_times = read_decompression_results(os.path.join(decomp_dir, file))
+            col_sizes, col_times = read_decompression_results(os.path.join(decomp_dir, file),
+                                                              col_idx_data_type)
             try:
                 col_comp_sizes[gwas_basename][block_size].update(col_sizes)
             except KeyError:
@@ -126,11 +155,12 @@ def get_decompression_results(decomp_dir):
 
     return col_comp_sizes, col_decomp_times
 
-def read_decompression_results(decomp_file):
-    # codec: [col_size, col_size, ...]
-    col_sizes = {}
-    # codec: [decomp_time, decomp_time, ...]
-    col_decomp_times = {}
+def read_decompression_results(decomp_file,
+                               col_idx_data_type):
+    # codec: col_data_type: [col_size, col_size, ...]
+    col_sizes = defaultdict(dict)
+    # codec: col_idx: [decomp_time, decomp_time, ...]
+    col_decomp_times = defaultdict(dict)
 
     # open file and read in data, split by comma
     # block_idx, col_idx, comp_time, col_size, codec
@@ -138,27 +168,43 @@ def read_decompression_results(decomp_file):
         # read header
         header = f.readline()
         data = f.readlines()
-    # get the column sizes and decompression times
+    # get the column idx, column sizes and decompression times
     col_sizes = {}
     col_decomp_times = {}
     for line in data:
-        block_idx, col_idx, comp_time, col_size, codec = line.strip().split(',')
+        block_idx, col_idx, decomp_time, col_size, codec = line.strip().split(',')
         # remove microseconds unit from compression time
-        comp_time = float(comp_time.replace('μs', ''))
+        decomp_time = float(decomp_time.replace('μs', ''))
+        col_size = int(col_size)
+        col_data_type = col_idx_data_type[int(col_idx)]
         try:
-            col_sizes[codec].append(col_size)
+            col_sizes[codec][col_data_type].append(col_size)
         except KeyError:
-            col_sizes[codec] = [col_size]
+            try:
+                col_sizes[codec][col_data_type] = [col_size]
+            except KeyError:
+                col_sizes[codec] = {}
+                col_sizes[codec][col_data_type] = [col_size]
         try:
-            col_decomp_times[codec].append(comp_time)
+            col_decomp_times[codec][col_data_type].append(decomp_time)
         except KeyError:
-            col_decomp_times[codec] = [comp_time]
-    return col_sizes, col_decomp_times
+            try:
+                col_decomp_times[codec][col_data_type] = [decomp_time]
+            except KeyError:
+                col_decomp_times[codec] = {}
+                col_decomp_times[codec][col_data_type] = [decomp_time]
 
+    return col_sizes, col_decomp_times
 
 def main():
 
     args = parse_args()
+
+    # COL_IDX ---> DATA TYPE
+    col_idx_data_type = {0: 'int', 1: 'int',
+                         2: 'string', 3: 'string',
+                         4: 'float', 5: 'float', 6: 'float', 7: 'float',
+                         8: 'string'}
 
     # read gwas file names
     gwas_files = []
@@ -167,10 +213,15 @@ def main():
             gwas_files.append(line.strip())
 
     # get file sizes for bgzip, gzip, and kzip
-    gzip_sizes, bgzip_sizes, kzip_sizes = get_file_sizes(gwas_files,
-                                                         args.root,
-                                                         BLOCK_SIZES,
-                                                         CODEC_COCKTAILS)
+    (gzip_sizes,
+     bgzip_sizes,
+     kzip_sizes,
+     kzip_gen_idx_sizes,
+     kzip_pval_idx_sizes) =\
+        get_file_sizes(gwas_files,
+                       args.root,
+                       BLOCK_SIZES,
+                       CODEC_COCKTAILS)
 
     # write file sizes to output directory
     # gwas file: bgzip_size, gzip_size, kzip_size
@@ -190,13 +241,22 @@ def main():
                                 str(block_size) + ',' +
                                 codec_cocktail + ',' +
                                 str(kzip_sizes[gwas_file][block_size][codec_cocktail]) + '\n')
+                        f.write('kzip_gen_idx,' +
+                                str(block_size) + ',' +
+                                codec_cocktail + ',' +
+                                str(kzip_gen_idx_sizes[gwas_file][block_size][codec_cocktail]) + '\n')
+                        f.write('kzip_pval_idx,' +
+                                str(block_size) + ',' +
+                                codec_cocktail + ',' +
+                                str(kzip_pval_idx_sizes[gwas_file][block_size][codec_cocktail]) + '\n')
                     except KeyError:
                         f.write('NA,')
             f.write('\n')
 
 
     # get size and timing for kzip columns
-    col_sizes, col_decomp_times = get_decompression_results(os.path.join(args.root, args.decomp))
+    col_sizes, col_decomp_times = get_decompression_results(os.path.join(args.root, args.decomp),
+                                                            col_idx_data_type)
     # write column sizes and decompression times to output directory
     # gwas file: block_size: codec: col_size
     with open(os.path.join(args.out, 'column_sizes.csv'), 'w') as f:
@@ -205,22 +265,25 @@ def main():
             f.write('gwas file,' + f'{gwas_file}' + '\n')
             for block_size in col_sizes[gwas_file]:
                 for codec in col_sizes[gwas_file][block_size]:
-                    f.write(f'{block_size},{codec}')
-                    for col_size in col_sizes[gwas_file][block_size][codec]:
-                        f.write(f',{col_size}')
-                    f.write('\n')
+                    for data_type in col_sizes[gwas_file][block_size][codec]:
+                        f.write(str(block_size) + ',' +
+                                codec + ',' +
+                                data_type + ',' +
+                                ','.join([str(x) for x in col_sizes[gwas_file][block_size][codec][data_type]]) + '\n')
 
-    # gwas file: block_size: codec: decomp_time
+    # gwas file: block_size: codec: col_decomp_time
     with open(os.path.join(args.out, 'column_decompression_times.csv'), 'w') as f:
-        f.write('block_size,codec,decomp_time\n')
+        f.write('block_size,codec,col_decomp_time\n')
         for gwas_file in col_decomp_times:
             f.write('gwas file,' + f'{gwas_file}' + '\n')
             for block_size in col_decomp_times[gwas_file]:
                 for codec in col_decomp_times[gwas_file][block_size]:
-                    f.write(f'{block_size},{codec}')
-                    for decomp_time in col_decomp_times[gwas_file][block_size][codec]:
-                        f.write(f',{decomp_time}')
-                    f.write('\n')
+                    for data_type in col_decomp_times[gwas_file][block_size][codec]:
+                        f.write(str(block_size) + ',' +
+                                codec + ',' +
+                                data_type + ',' +
+                                ','.join([str(x) for x in col_decomp_times[gwas_file][block_size][codec][data_type]]) + '\n')
+
     x = 'pause'
 
     # get overall compression times for kzip
