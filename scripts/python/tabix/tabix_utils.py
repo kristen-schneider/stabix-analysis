@@ -26,10 +26,33 @@ def tabix_query(chrm,
 
     record = tb.query(chrm, start, end)
     for r in record:
-        if float(r[p_value_idx]) <= p_value_threshold:
+        if check_record(r, p_value_idx, p_value_threshold):
             records.append(r)
 
     return records
+
+def get_genes(bed_file):
+    # {gene: {chrom: [start, end]}}
+    genes = {}
+
+    with open(bed_file, 'r') as f:
+        for line in f:
+            chrom, start, end, gene = line.strip().split('\t')[:4]
+            if gene not in genes:
+                genes[gene] = {}
+            if chrom not in genes[gene]:
+                genes[gene][chrom] = []
+            genes[gene][chrom].append((int(start), int(end)))
+
+    f.close()
+
+    return genes
+
+def check_record(record,
+                 p_value_idx,
+                 p_value_threshold):
+    # check if the record has a p-value below the threshold
+    return float(record[p_value_idx]) < p_value_threshold
 
 
 
