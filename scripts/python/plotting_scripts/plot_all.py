@@ -6,6 +6,7 @@ from collections import defaultdict
 from scripts.python.plotting_scripts import plot_file_sizes as pfs
 from scripts.python.plotting_scripts import plot_columns as pc
 
+BLOCK_SIZES = [10000, 15000, 20000, 'map']
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Plot file sizes')
@@ -35,12 +36,14 @@ def read_file_sizes(file_sizes_file):
     gzip_sizes = []
     bgzip_sizes = []
     kzip_sizes = defaultdict(dict)
+    kzip_genomic_idx_sizes = defaultdict(dict)
+    kzip_pvalue_idx_sizes = defaultdict(dict)
 
     with open(file_sizes_file, 'r') as f:
         for line in f:
             L = line.strip().split(',')
             if 'gwas' in L[0]:
-                continue
+                gwas_file = L[1]
             elif L[0] == 'gzip':
                 size = int(L[1])
                 gzip_sizes.append(size)
@@ -52,11 +55,46 @@ def read_file_sizes(file_sizes_file):
                 codec_cocktail = L[2]
                 size = int(L[3])
                 try:
-                    kzip_sizes[block_size][codec_cocktail] = size
+                    kzip_sizes[gwas_file][block_size][codec_cocktail] = size
                 except KeyError:
-                    kzip_sizes[block_size] = {}
-                    kzip_sizes[block_size][codec_cocktail] = size
-    return gzip_sizes, bgzip_sizes, kzip_sizes
+                    try:
+                        kzip_sizes[gwas_file][block_size] = {}
+                        kzip_sizes[gwas_file][block_size][codec_cocktail] = size
+                    except KeyError:
+                        kzip_sizes[gwas_file] = {}
+                        kzip_sizes[gwas_file][block_size] = {}
+                        kzip_sizes[gwas_file][block_size][codec_cocktail] = size
+
+            elif L[0] == 'kzip_gen_idx':
+                block_size = L[1]
+                codec_cocktail = L[2]
+                size = int(L[3])
+                try:
+                    kzip_genomic_idx_sizes[gwas_file][block_size][codec_cocktail] = size
+                except KeyError:
+                    try:
+                        kzip_genomic_idx_sizes[gwas_file][block_size] = {}
+                        kzip_genomic_idx_sizes[gwas_file][block_size][codec_cocktail] = size
+                    except KeyError:
+                        kzip_genomic_idx_sizes[gwas_file] = {}
+                        kzip_genomic_idx_sizes[gwas_file][block_size] = {}
+                        kzip_genomic_idx_sizes[gwas_file][block_size][codec_cocktail] = size
+
+            elif L[0] == 'kzip_pval_idx':
+                block_size = L[1]
+                codec_cocktail = L[2]
+                size = int(L[3])
+                try:
+                    kzip_pvalue_idx_sizes[gwas_file][block_size][codec_cocktail] = size
+                except KeyError:
+                    try:
+                        kzip_pvalue_idx_sizes[gwas_file][block_size] = {}
+                        kzip_pvalue_idx_sizes[gwas_file][block_size][codec_cocktail] = size
+                    except KeyError:
+                        kzip_pvalue_idx_sizes[gwas_file] = {}
+                        kzip_pvalue_idx_sizes[gwas_file][block_size] = {}
+                        kzip_pvalue_idx_sizes[gwas_file][block_size][codec_cocktail] = size
+    return gzip_sizes, bgzip_sizes, kzip_sizes, kzip_genomic_idx_sizes, kzip_pvalue_idx_sizes
 
 def read_column_sizes(column_sizes_file):
     column_sizes = defaultdict(dict)
@@ -70,8 +108,17 @@ def read_column_sizes(column_sizes_file):
             else:
                 block_size = L[0]
                 column_codec = L[1]
-                column_sizes[block_size][column_codec] = [int(x) for x in L[2:]]
-
+                data_type = L[2]
+                try:
+                    column_sizes[block_size][column_codec][data_type] = [int(x) for x in L[3:]]
+                except KeyError:
+                    try:
+                        column_sizes[block_size][column_codec] = {}
+                        column_sizes[block_size][column_codec][data_type] = [int(x) for x in L[3:]]
+                    except KeyError:
+                        column_sizes[block_size] = {}
+                        column_sizes[block_size][column_codec] = {}
+                        column_sizes[block_size][column_codec][data_type] = [int(x) for x in L[3:]]
     return column_sizes
 
 def read_column_decompression_times(decompression_times_file):
@@ -86,7 +133,17 @@ def read_column_decompression_times(decompression_times_file):
             else:
                 block_size = L[0]
                 column_codec = L[1]
-                decompression_times[block_size][column_codec] = [float(x) for x in L[2:]]
+                data_type = L[2]
+                try:
+                    decompression_times[block_size][column_codec][data_type] = [float(x) for x in L[3:]]
+                except KeyError:
+                    try:
+                        decompression_times[block_size][column_codec] = {}
+                        decompression_times[block_size][column_codec][data_type] = [float(x) for x in L[3:]]
+                    except KeyError:
+                        decompression_times[block_size] = {}
+                        decompression_times[block_size][column_codec] = {}
+                        decompression_times[block_size][column_codec][data_type] = [float(x) for x in L[3:]]
     return decompression_times
 
 def main():
@@ -94,21 +151,42 @@ def main():
     colors = read_colors(args.colors)
 
     # COMPRESSED FILE SIZES
-    gzip_sizes, bgzip_sizes, kzip_sizes = read_file_sizes(args.file_sizes)
-    pfs.plot_file_sizes(gzip_sizes,
-                        bgzip_sizes,
-                        kzip_sizes,
-                        colors,
-                        args.output_dir + '/file_sizes.png')
+    (gzip_sizes,
+     bgzip_sizes,
+     kzip_sizes,
+     kzip_genomic_idx_sizes,
+     kzip_pvalue_idx_sizes)  = read_file_sizes(args.file_sizes)
 
-
-    # COLUMN DECOMPRESSION SPEED BY COMPRESSED SIZE
-    column_sizes = read_column_sizes(args.compressed_sizes)
-    column_decompression_times = read_column_decompression_times(args.decompression_times)
-    pc.plot_column_scatter(column_sizes,
-                            column_decompression_times,
+    # pfs.plot_file_sizes_scatter(gzip_sizes,
+    #                             bgzip_sizes,
+    #                             kzip_sizes,
+    #                             kzip_genomic_idx_sizes,
+    #                             kzip_pvalue_idx_sizes,
+    #                             colors,
+    #                             args.output_dir + '/file_sizes_scatter.png')
+    pfs.plot_file_sizes_violin(gzip_sizes,
+                            bgzip_sizes,
+                            kzip_sizes,
+                            kzip_genomic_idx_sizes,
+                            kzip_pvalue_idx_sizes,
                             colors,
-                            args.output_dir + '/column_scatter.png')
+                            args.output_dir + '/file_sizes_violin.png')
+
+
+
+    # # COLUMN DECOMPRESSION SPEED BY COMPRESSED SIZE
+    # column_sizes = read_column_sizes(args.compressed_sizes)
+    # column_decompression_times = read_column_decompression_times(args.decompression_times)
+    # pc.plot_column_by_block_scatter(column_sizes,
+    #                                 column_decompression_times,
+    #                                 colors,
+    #                                 args.output_dir + '/column_block_size_scatter.png')
+    #
+    # pc.plot_column_by_data_type_scatter(column_sizes,
+    #                                     column_decompression_times,
+    #                                     BLOCK_SIZES,
+    #                                     colors,
+    #                                     args.output_dir + '/column_data_type_scatter.png')
 
 
 
