@@ -11,7 +11,7 @@ def tabix_query_with_threshold(time_file,
                                start,
                                end,
                                gwas_file,
-                               p_value_idx,
+                               p_value_idx=-1,
                                p_value_threshold=5e-8):
     '''
     Query a GWAS file for one gene using tabix
@@ -77,9 +77,15 @@ def check_record(record,
     except ValueError:
         return False
 
-def get_pval_index(bgzip_file):
-    # get the index of the p-value column
-    return 7
+def read_pval_index(pval_index_file):
+    pval_indexes = {}
+    with open(pval_index_file, 'r') as f:
+        for line in f:
+            pval = int(line.strip().split(':')[0])
+            title = line.strip().split(':')[1]
+            pval_indexes[pval] = title
+    f.close()
+    return pval_indexes
 
 
 

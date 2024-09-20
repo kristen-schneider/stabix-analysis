@@ -58,9 +58,14 @@ def get_file_sizes(gwas_files,
                                         gwas_file + '.tsv.bgz.tbi')
         bgzip_sizes[gwas_file] = os.path.getsize(bgzip_file) + os.path.getsize(bgzip_file_tbxi)
         # gzip
-        gzip_file = os.path.join(root,
-                                 gwas_file + '.tsv.gz')
-        gzip_sizes[gwas_file] = os.path.getsize(gzip_file)
+        try:
+            gzip_file = os.path.join(root,
+                                     gwas_file + '.tsv.gz')
+            gzip_sizes[gwas_file] = os.path.getsize(gzip_file)
+        except FileNotFoundError:
+            print(f'File not found: {gwas_file}')
+            # keep going
+            gzip_sizes[gwas_file] = 0
 
     # get file size for kzip
     # gwas file: block_size: codec: size
