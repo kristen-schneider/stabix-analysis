@@ -1,5 +1,7 @@
 import argparse
 import tabix_utils
+import os
+import sys
 
 
 num_genes = 100
@@ -10,7 +12,6 @@ def parse_args():
     parser = argparse.ArgumentParser(description='Sandbox script')
     parser.add_argument('--bed', type=str, help='gene bed file')
     parser.add_argument('--gwas', type=str, help='GWAS file (.bgz) and tabix included')
-    parser.add_argument('--pval_index', type=int, help='index of the p-value column')
     parser.add_argument('--pval_threshold', type=str, help='less than or equal to this value')
     parser.add_argument('--tabix_out', type=str, help='output directory for tabix results')
 
@@ -27,19 +28,26 @@ def main():
 
 
     gwas_file = args.gwas
-    p_value_idx = int(args.pval_index)
+    gwas_basename = os.path.basename(gwas_file)
+    # p_value_idx = int(args.pval_index)
+    p_value_idx = tabix_utils.get_pval_index(gwas_file)
     p_value_threshold = float(args.pval_threshold)
 
-    output_tabix_time_file = args.tabix_out + 'tabix_query_time.txt'
+    output_tabix_time_file = args.tabix_out + '-tabix_query_times.txt'
     time_file = open(output_tabix_time_file, 'a')
     time_file.truncate(0)
+    gwas_file_size = os.path.getsize(gwas_file)
+    time_file.write('GWAS file: {}'.format(gwas_basename) + ', Bytes: {}\n'.format(gwas_file_size))
     time_file.write('Gene,Time(sec)\n')
 
-    output_tabix_query_file = args.tabix_out + 'tabix_query_results.txt'
+    output_tabix_query_file = args.tabix_out + '-tabix_query_results.txt'
     query_file = open(output_tabix_query_file, 'a')
     query_file.truncate(0)
 
     query_idx = 0
+    total_sig_snps = 0
+    total_sig_genes = 0
+    # write gwas file and size to query file
     for gene in genes:
         print('Gene: {}'.format(gene) + ' ' + str(query_idx))
         query_file.write('Gene: {}\n'.format(gene))
@@ -54,10 +62,18 @@ def main():
                                                                  p_value_idx,
                                                                  p_value_threshold)
                 if records:
-                    for record in records:
+                    split_records = [record.split() for record in records]
+                    for record in split_records:
                         query_file.write('\t'.join(record) + '\n')
+                    total_sig_snps += len(records)
+                    total_sig_genes += 1
 
         query_idx += 1
+
+    time_file.write('GWAS file: {}'.format(gwas_basename) +
+                    ', Genes: {}'.format(total_sig_genes) +
+                    ', SNPs: {}'.format(total_sig_snps))
+
 
 
 if __name__ == '__main__':

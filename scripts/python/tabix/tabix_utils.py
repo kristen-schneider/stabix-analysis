@@ -1,5 +1,9 @@
-import tabix
+import pandas as pd
+import numpy as np
+import pysam
+# import tabix
 import time
+
 
 def tabix_query_with_threshold(time_file,
                                gene_name,
@@ -24,18 +28,20 @@ def tabix_query_with_threshold(time_file,
     # time tabix query
     start_time = time.time()
     try:
-        tb = tabix.open(gwas_file)
-    except tabix.TabixError:
-        print('Error opening tabix file')
+        tb = pysam.TabixFile(gwas_file)
+        # tb = tabix.open(gwas_file)
+    except FileNotFoundError:
+        print('File not found')
         return records
 
     try:
-        record = tb.query(chrm, start, end)
+        record = tb.fetch(chrm, start, end)
+        # record = tb.query(chrm, start, end)
         for r in record:
             if check_record(r, p_value_idx, p_value_threshold):
                 records.append(r)
-    except tabix.TabixError:
-        print('Error querying tabix file')
+    except ValueError:
+        print('ValueError')
         return records
 
     end_time = time.time()
@@ -64,11 +70,19 @@ def get_genes(bed_file):
 def check_record(record,
                  p_value_idx,
                  p_value_threshold):
+    split_record = record.split()
     # check if the record has a p-value below the threshold
     try:
-        return float(record[p_value_idx]) <= p_value_threshold
+        return float(split_record[p_value_idx]) <= p_value_threshold
     except ValueError:
         return False
+
+def get_pval_index(bgzip_file):
+    # get the index of the p-value column
+    return 7
+
+
+
 
 
 

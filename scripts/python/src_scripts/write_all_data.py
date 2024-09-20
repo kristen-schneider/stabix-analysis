@@ -12,7 +12,7 @@ import numpy as np
 import sys
 
 # GLOBAL VARIABLES
-CODEC_COCKTAILS = ['bz2', 'deflate', 'xz']
+CODEC_COCKTAILS = ['bz2', 'deflate', 'xz', 'zlib', 'zstd']
 BLOCK_SIZES = [10000, 15000, 20000, 'map']
 
 # argumnnet parser

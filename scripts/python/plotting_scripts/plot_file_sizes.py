@@ -153,19 +153,18 @@ def plot_file_sizes_violin(gzip_sizes,
             violin_data.append(violin_data_dict[block_size][codec_cocktail])
 
     x_data = []
-    # 0.15 increments for every codec cocktail; 0.3 increments for every block size
     x_idx = 0
     for block_size in violin_data_dict:
         x_point = x_idx
         for codec_cocktail in violin_data_dict[block_size]:
             x_data.append(x_point)
-            x_point += 0.1
-        x_idx += 0.1*5
+            x_point += 0.2
+        x_idx += 1
 
     # plot the violins
     plt.violinplot(violin_data,
                    x_data,
-                   widths=0.1,
+                   widths=0.15,
                    showmeans=False,
                    showmedians=True)
 
@@ -177,10 +176,12 @@ def plot_file_sizes_violin(gzip_sizes,
         pc.set_facecolor(colors[i])
         pc.set_edgecolor('black')
 
+    # TODO: plot genomic index and pvalue index sizes
     # plot genomic index sizes
     # plot pvalue index sizes
 
     # FOR NOW
+    # TODO: plot gzip and bgzip sizes for each file, not an average
     plt.axhline(y=gzip_sizes[0] / scale,
                 color='black', linestyle='solid', linewidth=3,
                 label='gzip')
@@ -204,9 +205,9 @@ def plot_file_sizes_violin(gzip_sizes,
     codec_legend_elements = [Patch(facecolor=codec_colors[codec], edgecolor='black', label=codec)
                             for codec in codec_colors]
 
-    # add black for genomic index and grey for pvalue index
-    codec_legend_elements.append(Patch(facecolor='black', edgecolor='black', label='genomic index'))
-    codec_legend_elements.append(Patch(facecolor='grey', edgecolor='black', label='pvalue index'))
+    # # add black for genomic index and grey for pvalue index
+    # codec_legend_elements.append(Patch(facecolor='black', edgecolor='black', label='genomic index'))
+    # codec_legend_elements.append(Patch(facecolor='grey', edgecolor='black', label='pvalue index'))
 
     # add bgzip dashed line to legend
     codec_legend_elements.insert(0, Line2D([0], [0],
@@ -226,11 +227,17 @@ def plot_file_sizes_violin(gzip_sizes,
     # label the y-axis
     plt.ylabel('Compressed file size\n(MB)', fontsize=14)
 
-    # # label the x-axis
-    # x_ticks = range(len(kzip_sizes.keys()))
-    # x_tick_labels = [f'{block_size}' for block_size in kzip_sizes.keys()[0].keys()]
-    # plt.xticks(x_ticks, x_tick_labels, fontsize=12)
-    # plt.xlabel('Block size\n(number of records in block)', fontsize=14)
+    # label the x-axis by block size
+    x_ticks = range(len(violin_data_dict.keys()))
+    x_tick_labels = []
+    for block_size_label in violin_data_dict.keys():
+        if block_size_label == 'map':
+            x_tick_labels.append('map\n(1cM)')
+        else:
+            x_tick_labels.append(f'{block_size_label}')
+    # x_tick_labels = [f'{block_size}' for block_size in violin_data_dict.keys()]
+    plt.xticks(x_ticks, x_tick_labels, fontsize=12)
+    plt.xlabel('Block size\n(number of records in block)', fontsize=14)
 
     # remove spines
     ax.spines['top'].set_visible(False)
