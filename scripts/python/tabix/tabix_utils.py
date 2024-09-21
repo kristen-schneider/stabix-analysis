@@ -41,7 +41,6 @@ def tabix_query_with_threshold(time_file,
             if check_record(r, p_value_idx, p_value_threshold):
                 records.append(r)
     except ValueError:
-        print('ValueError')
         return records
 
     end_time = time.time()
@@ -80,6 +79,7 @@ def check_record(record,
 def read_pval_index(pval_index_file):
     pval_indexes = {}
     with open(pval_index_file, 'r') as f:
+        header = f.readline()
         for line in f:
             pval = int(line.strip().split(':')[0])
             title = line.strip().split(':')[1]

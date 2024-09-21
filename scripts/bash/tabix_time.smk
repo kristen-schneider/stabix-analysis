@@ -25,12 +25,14 @@ TBX_URLS = PD_MANIFEST["wget_tabix"].tolist()
 
 rule all:
     input:
-        #expand(f"{config.output_dir}{{root_file_name}}.tsv.bgz.tbi", root_file_name=ROOT_FILE_NAMES),
-        #expand(f"{config.output_dir}{{root_file_name}}-pval_col_idx.txt", root_file_name=ROOT_FILE_NAMES),
-        expand(f"{config.output_dir}{{root_file_name}}-tabix_query_results.txt", root_file_name=ROOT_FILE_NAMES),
-        expand(f"{config.output_dir}{{root_file_name}}-tabix_query_times.txt", root_file_name=ROOT_FILE_NAMES)
+        #expand(f"{config.output_dir}{{root_file_name}}-gwas_data_removed.txt", root_file_name=ROOT_FILE_NAMES),
+        f"{config.output_dir}all_gwas_data_removed.txt",
+        f"{config.output_dir}all_pval_col_idx.txt",
+        f"{config.output_dir}all_tabix_query_results.txt",
+        f"{config.output_dir}all_tabix_query_times.txt"
 
 rule download_bgz:
+    message: "Downloading bgz files."
     input:
         manifest=f"{config.ukbb_manifest}"
     output:
@@ -39,12 +41,13 @@ rule download_bgz:
         url=lambda wildcards: BGZ_URLS[ROOT_FILE_NAMES.index(wildcards.root_file_name)]
     shell:
         """
+        mkdir -p {config.output_dir}
         cd {config.output_dir}
-        echo 'Downloading bgz file: {output.bgz_file_name}'
         {params.url}
         """
 
 rule download_tabix:
+    message: "Downloading tabix files."
     input:
         bgz_file_name=f"{config.output_dir}{{root_file_name}}.tsv.bgz"
     output:
@@ -54,11 +57,11 @@ rule download_tabix:
     shell:
         """
         cd {config.output_dir}
-        echo 'Downloading tabix file: {output.tbx_file_name}'
         {params.url}
         """
 
 rule get_pval_col_idx:
+    message: "Getting pval column indexes."
     input:
         bgz_file_name=f"{config.output_dir}{{root_file_name}}.tsv.bgz"
     output:
@@ -67,15 +70,16 @@ rule get_pval_col_idx:
         """
         conda activate gwas_cpp
         cd {config.root_dir}
-        echo 'Getting pval column index for file: {input.bgz_file_name}'
+        echo GWAS file: {wildcards.root_file_name} > {output.pval_file_name}
         bgzip -dc {input.bgz_file_name} |
         head -n 1 |
         tr '\\t' '\\n' |
         grep -n -i -E 'pval|p-val|p_val' |
-        cut -d ':' -f 1 -f 2 > {output.pval_file_name}
+        cut -d ':' -f 1 -f 2 >> {output.pval_file_name}
         """
 
 rule tabix_search:
+    message: "Searching files with tabix (applying pvalue threshold)."
     input:
         bgz_file_name=f"{config.output_dir}{{root_file_name}}.tsv.bgz",
         tbx_file_name=f"{config.output_dir}{{root_file_name}}.tsv.bgz.tbi",
@@ -87,7 +91,6 @@ rule tabix_search:
         """
         conda activate snakemake
         cd {config.root_dir}
-        echo 'Searching file: {input.bgz_file_name}'
         python {config.scripts_dir}tabix_query.py \
         --bed {config.bed_file} \
         --gwas {input.bgz_file_name} \
@@ -96,6 +99,69 @@ rule tabix_search:
         --tabix_out {config.output_dir}{wildcards.root_file_name} \
         """
 
+rule remove_gwas_data:
+    message: "Removing GWAS files (.bgz and .tbi)."
+    input:
+        bgz_file_name=f"{config.output_dir}{{root_file_name}}.tsv.bgz",
+        tbx_file_name=f"{config.output_dir}{{root_file_name}}.tsv.bgz.tbi"
+    output:
+        cleaned_file_name=f"{config.output_dir}{{root_file_name}}-gwas_data_removed.txt"
+    params:
+        bgz_file_name=lambda wildcards: f"{config.output_dir}{wildcards.root_file_name}.tsv.bgz",
+        tbx_file_name=lambda wildcards: f"{config.output_dir}{wildcards.root_file_name}.tsv.bgz.tbi"
+    shell:
+        """
+        rm {params.bgz_file_name}
+        rm {params.tbx_file_name}
+        touch {output.cleaned_file_name}
+        """
+
+rule remove_empty_files:
+    input:
+        cleaned_file_names=expand(f"{config.output_dir}{{root_file_name}}-gwas_data_removed.txt", root_file_name=ROOT_FILE_NAMES)
+    output:
+        f"{config.output_dir}all_gwas_data_removed.txt"
+    shell:
+        """
+        rm {input.cleaned_file_names}
+        echo {input.cleaned_file_names} | tr ' ' '\\n' > {output}
+        """
+
+rule combine_pval_col_idx:
+    message: "Combining pval column indexes."
+    input:
+        pval_file_names=expand(f"{config.output_dir}{{root_file_name}}-pval_col_idx.txt", root_file_name=ROOT_FILE_NAMES)
+    output:
+        f"{config.output_dir}all_pval_col_idx.txt"
+    shell:
+        """
+        cat {input.pval_file_names} > {output}
+        rm {input.pval_file_names}
+        """
+
+rule combine_tabix_query_results:
+    message: "Combining tabix query results."
+    input:
+        tabix_query_results=expand(f"{config.output_dir}{{root_file_name}}-tabix_query_results.txt", root_file_name=ROOT_FILE_NAMES)
+    output:
+        f"{config.output_dir}all_tabix_query_results.txt"
+    shell:
+        """
+        cat {input.tabix_query_results} > {output}
+        rm {input.tabix_query_results}
+        """
+
+rule combine_tabix_query_times:
+    message: "Combining tabix query times."
+    input:
+        tabix_query_times=expand(f"{config.output_dir}{{root_file_name}}-tabix_query_times.txt", root_file_name=ROOT_FILE_NAMES)
+    output:
+        f"{config.output_dir}all_tabix_query_times.txt"
+    shell:
+        """
+        cat {input.tabix_query_times} > {output}
+        rm {input.tabix_query_times}
+        """
 
 
 
