@@ -1,5 +1,4 @@
 import argparse
-from ctypes.macholib.dyld import framework_find
 
 import matplotlib.pyplot as plt
 import os
@@ -11,6 +10,8 @@ def parse_args():
     parser = argparse.ArgumentParser(description='Plot Tabix Results')
     parser.add_argument('--times', type=str, required=True,
                         help='tabix search times')
+    parser.add_argument('--results', type=str, required=True,
+                        help='tabix search results')
     parser.add_argument('--out', type=str, required=True,
                         help='output directory for plots')
     return parser.parse_args()
@@ -94,17 +95,70 @@ def plot_tabix_times_by_gene_size(tabix_times,
 
     fig.savefig(out + 'tabix_search_times_by_gene_size_scatter.png')
 
+def read_tabix_results_data(tabix_results_file):
+    header = None
+    tabix_results = defaultdict()
+    f = open(tabix_results_file, 'r')
+    for line in f:
+        if header == None:
+            header = line.strip().split(',')
+            continue
+        L = line.strip().split(',')
+        gwas_file = L[0]
+        gene = int(L[1])
+        snps = int(L[2])
+        tabix_results[gwas_file] = (gene, snps)
+
+    return tabix_results
+
+def plot_tabix_results_hist(tabix_results,
+                            out):
+    # plot one histogram of the number of genes and one histogram of the number of snps for each file
+    fig, ax = plt.subplots(2, 1, figsize=(10, 4), dpi=300)
+
+    gene_data = []
+    snp_data = []
+
+    for gwas_file, (gene, snps) in tabix_results.items():
+        gene_data.append(gene)
+        snp_data.append(snps)
+
+    ax[0].hist(gene_data, bins=5, alpha=0.5, density=True)
+    ax[0].set_xlabel('Number of Significant Genes')
+    ax[0].set_ylabel('Frequency')
+    ax[0].set_xlim(0, 5)
+
+    ax[1].hist(snp_data, bins=5, alpha=0.5, density=True)
+    ax[1].set_xlabel('Number of Significant SNPs')
+    ax[1].set_ylabel('Frequency')
+    ax[1].set_xlim(0, 5)
+
+    fig.suptitle('Tabix Results')
+
+    # format plot
+    for a in ax:
+        a.spines['top'].set_visible(False)
+        a.spines['right'].set_visible(False)
+
+    fig.savefig(out + 'tabix_results_hist.png')
+
 def main():
     args = parse_args()
 
     print('Reading tabix times data...')
     tabix_times = read_tabix_times_data(args.times)
-    print('Plotting histograms...')
+    print('...plotting times histograms...')
     plot_tabix_times_hist(tabix_times,
                           args.out)
-    print('Plotting scatter plot...')
+    print('...plotting times scatter plot...')
     plot_tabix_times_by_gene_size(tabix_times,
                                   args.out)
+
+    print('Reading tabix results data...')
+    tabix_results = read_tabix_results_data(args.results)
+    print('...plotting results histograms...')
+    plot_tabix_results_hist(tabix_results,
+                            args.out)
 
 
 if __name__ == '__main__':
