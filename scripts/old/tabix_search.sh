@@ -8,7 +8,7 @@
 #SBATCH --time=20:00:00
 #SBATCH --mail-type=NONE
 #SBATCH --mail-user=name@email.com
-#SBATCH --output=/scratch/Users/krsc0813/bash_scripts/out/tabix-search-gwas.out
+#SBATCH --test_output=/scratch/Users/krsc0813/bash_scripts/out/tabix-search-gwas.out
 #SBATCH --error=/scratch/Users/krsc0813/bash_scripts/err/tabix-search-gwas.err
 
 gwas_repo="/scratch/Users/krsc0813/gwas-analysis/"

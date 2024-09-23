@@ -11,7 +11,7 @@ def parse_args():
     parser.add_argument('-n', '--file_names', help='gwas file names', required=True)
     parser.add_argument('-s', '--file_sizes', help='gwas file sizes', required=True)
     parser.add_argument('-c', '--colors', help='colors for codecs', required=True)
-    parser.add_argument('-p', '--plot_dir', help='output directory to save plots', required=True)
+    parser.add_argument('-p', '--plot_dir', help='test_output directory to save plots', required=True)
     return parser.parse_args()
 
 
@@ -27,7 +27,7 @@ def plot_file_sizes(gwas_file_names,
     :param file_sizes: dictionary of file names and their sizes in bytes
     :param block_sizes: list of block sizes
     :param codec_colors: dict of codecs and their colors
-    :param plot_dir: output directory to save the plots
+    :param plot_dir: test_output directory to save the plots
     :return: none
     '''
 

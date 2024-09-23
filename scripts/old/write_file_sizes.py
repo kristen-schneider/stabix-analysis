@@ -45,7 +45,7 @@ def write_file_sizes(gwas_file_names,
     Write the file sizes to a file
     :param gwas_file_names: list of gwas file names
     :param file_sizes: dictionary of file names and their sizes in bytes
-    :param output_file: output file to write the file sizes
+    :param output_file: test_output file to write the file sizes
     :return: None
     '''
     with open(output_file, 'w') as f:

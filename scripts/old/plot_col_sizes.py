@@ -99,7 +99,7 @@ def plot_col_size_by_data_type(col_size_data,
     codecs = ['bz2', 'deflate', 'xz', 'zlib', 'zstd']
     block_sizes = ['2000', '5000', '10000', '20000']
 
-    # create new output file for each block size
+    # create new test_output file for each block size
     for block_size in block_sizes:
         out_file = os.path.join(output_dir, f'col_sizes_{block_size}_nofpf.png')
 
@@ -171,7 +171,7 @@ def plot_col_size_by_column(col_size_data,
                      5: 'Effect Allele Frequency', 6: 'Beta',
                      7: 'Standard Error', 8: 'Z', 9: 'P Value'}
 
-    # create new output file for each block size
+    # create new test_output file for each block size
     for block_size in block_sizes:
         out_file = os.path.join(output_dir, f'col_sizes_{block_size}_fpf_column.png')
 
