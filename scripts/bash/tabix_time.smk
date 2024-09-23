@@ -25,7 +25,6 @@ TBX_URLS = PD_MANIFEST["wget_tabix"].tolist()
 
 rule all:
     input:
-        #expand(f"{config.output_dir}{{root_file_name}}-gwas_data_removed.txt", root_file_name=ROOT_FILE_NAMES),
         f"{config.output_dir}all_gwas_data_removed.txt",
         f"{config.output_dir}all_pval_col_idx.txt",
         f"{config.output_dir}all_tabix_query_results.txt",
@@ -102,8 +101,8 @@ rule tabix_search:
 rule remove_gwas_data:
     message: "Removing GWAS files (.bgz and .tbi)."
     input:
-        bgz_file_name=f"{config.output_dir}{{root_file_name}}.tsv.bgz",
-        tbx_file_name=f"{config.output_dir}{{root_file_name}}.tsv.bgz.tbi"
+        f"{config.output_dir}{{root_file_name}}-tabix_query_results.txt",
+        f"{config.output_dir}{{root_file_name}}-tabix_query_times.txt",
     output:
         cleaned_file_name=f"{config.output_dir}{{root_file_name}}-gwas_data_removed.txt"
     params:
@@ -117,19 +116,22 @@ rule remove_gwas_data:
         """
 
 rule remove_empty_files:
+    message: "Removing empty files."
     input:
         cleaned_file_names=expand(f"{config.output_dir}{{root_file_name}}-gwas_data_removed.txt", root_file_name=ROOT_FILE_NAMES)
     output:
         f"{config.output_dir}all_gwas_data_removed.txt"
     shell:
         """
-        rm {input.cleaned_file_names}
         echo {input.cleaned_file_names} | tr ' ' '\\n' > {output}
+        rm {input.cleaned_file_names}
         """
 
 rule combine_pval_col_idx:
     message: "Combining pval column indexes."
     input:
+        tabix_query_results=expand(f"{config.output_dir}{{root_file_name}}-tabix_query_results.txt", root_file_name=ROOT_FILE_NAMES),
+        tabix_query_times=expand(f"{config.output_dir}{{root_file_name}}-tabix_query_times.txt", root_file_name=ROOT_FILE_NAMES),
         pval_file_names=expand(f"{config.output_dir}{{root_file_name}}-pval_col_idx.txt", root_file_name=ROOT_FILE_NAMES)
     output:
         f"{config.output_dir}all_pval_col_idx.txt"

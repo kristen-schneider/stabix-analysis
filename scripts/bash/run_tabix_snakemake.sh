@@ -9,7 +9,7 @@
 #SBATCH --time=20:00:00
 #SBATCH --mail-type=NONE
 #SBATCH --mail-user=name@email.com
-#SBATCH --output=tabix_snakemake.out
+#SBATCH --test_output=tabix_snakemake.out
 #SBATCH --error=tabix_snakemake.err
 
 #. /opt/conda/etc/profile.d/conda.sh
