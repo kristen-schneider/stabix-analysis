@@ -1,0 +1,23 @@
+GWAS File,Genes,SNPs
+continuous-103220-both_sexes,0,0
+continuous-22409-both_sexes-irnt,0,0
+categorical-41218-both_sexes-2,0,0
+continuous-22410-both_sexes-irnt,1,1
+phecode-282,0,0
+phecode-364,0,0
+icd10-D58-both_sexes,0,0
+phecode-735,0,0
+phecode-367,0,0
+phecode-201-both_sexes,1,1
+phecode-252,1,1
+phecode-473-both_sexes,1,1
+categorical-20096-both_sexes-2,0,0
+phecode-696,0,0
+phecode-317,1,1
+phecode-300-both_sexes,2,2
+continuous-30130-both_sexes-irnt,0,0
+phecode-250,0,0
+icd10-E11-both_sexes,2,2
+phecode-250-both_sexes,1,1
+categorical-1210-both_sexes-1210,0,0
+categorical-41247-both_sexes-2000,2,2
