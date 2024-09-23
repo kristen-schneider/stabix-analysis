@@ -228,7 +228,7 @@ def main():
                        BLOCK_SIZES,
                        CODEC_COCKTAILS)
 
-    # write file sizes to output directory
+    # write file sizes to test_output directory
     # gwas file: bgzip_size, gzip_size, kzip_size
     with open(os.path.join(args.out, 'file_sizes.csv'), 'w') as f:
         # gwas file
@@ -262,7 +262,7 @@ def main():
     # get size and timing for kzip columns
     col_sizes, col_decomp_times = get_decompression_results(os.path.join(args.root, args.decomp),
                                                             col_idx_data_type)
-    # write column sizes and decompression times to output directory
+    # write column sizes and decompression times to test_output directory
     # gwas file: block_size: codec: col_size
     with open(os.path.join(args.out, 'column_sizes.csv'), 'w') as f:
         f.write('block_size,codec,col_size\n')

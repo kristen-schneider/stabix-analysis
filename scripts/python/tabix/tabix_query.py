@@ -14,7 +14,7 @@ def parse_args():
     parser.add_argument('--gwas', type=str, help='GWAS file (.bgz) and tabix included')
     parser.add_argument('--pval_threshold', type=str, help='less than or equal to this value')
     parser.add_argument('--pval_cols', type=str, help='file with p-value columns')
-    parser.add_argument('--tabix_out', type=str, help='output directory for tabix results')
+    parser.add_argument('--tabix_out', type=str, help='test_output directory for tabix results')
 
     return parser.parse_args()
 
