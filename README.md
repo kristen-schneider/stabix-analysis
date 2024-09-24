@@ -1,5 +1,24 @@
 # gwas compression analysis
 
+### Plot comparison
+```
+python scripts/python/plotting_scripts/plot_comparison.py
+    --tabix_times data/UKBB/short_output/all_tabix_query_times.txt
+    --tabix_results data/UKBB/short_output/all_tabix_query_results.txt
+    --new_times data/UKBB/new_decomp_times.csv
+    --new_results /not/used/yet
+    --compressed_files_dir data/UKBB/new_decomp_times.csv
+    --out figures/pub_figures/png/
+```
+<details>
+  
+![comparison_times](figures/pub_figures/png/tabix_vs_new_search_times.png)<br>
+![comparison_sizes](figures/pub_figures/png/file_sizes.png)<br>
+
+</details>
+
+
+
 ### Write data to be plotted
 ```
 python scripts/python/plotting_scripts/write_tabix_data.py

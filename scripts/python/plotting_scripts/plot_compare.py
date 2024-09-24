@@ -3,9 +3,6 @@ import argparse
 import matplotlib.pyplot as plt
 import os
 from collections import defaultdict
-
-from pyparsing import alphas
-
 import plot_utils as plot_utils
 
 def parse_args():
@@ -20,6 +17,8 @@ def parse_args():
                         help='new search results')
     parser.add_argument('--out', type=str, required=True,
                         help='output directory for plots')
+    parser.add_argument('--compressed_files_dir', type=str, required=True,
+                        help='directory with compressed files')
     return parser.parse_args()
 
 def read_tabix_times_data(tabix_times_file):
@@ -137,7 +136,8 @@ def plot_tabix_times_hist(tabix_times,
             print(f'...tabix time: {tabix_plot_data[gwas_file]}')
             print(f'...new time: {new_plot_data[gwas_file]}')
             ax.scatter(tabix_plot_data[gwas_file], new_plot_data[gwas_file],
-                       label=gwas_file,
+                       marker='o',
+                       s=100,
                        color=color, alpha=0.7)
 
         except KeyError:
@@ -159,6 +159,105 @@ def plot_tabix_times_hist(tabix_times,
     # save
     plt.savefig(os.path.join(out, 'tabix_vs_new_search_times.png'))
 
+def get_file_sizes(compressed_files_dir,
+                   file_names):
+    # file: (tsv, bgz, tbi, gen, pval)
+    file_sizes = defaultdict(dict)
+    for file in os.listdir(compressed_files_dir):
+        file_name = file.replace('.tsv', '')
+        if file_name in file_names:
+            tsv_size = os.path.getsize(os.path.join(compressed_files_dir, file_name + '.tsv')) / 1e9
+            bgz_size = os.path.getsize(os.path.join(compressed_files_dir, file_name + '.tsv.bgz')) / 1e9
+            tbi_size = os.path.getsize(os.path.join(compressed_files_dir, file_name + '.tsv.bgz.tbi')) / 1e9
+            new_size = os.path.getsize(os.path.join(compressed_files_dir + file_name + '_10000_xz/', file_name + '_10000_xz.grlz')) / 1e9
+            gen_size = os.path.getsize(os.path.join(compressed_files_dir + file_name + '_10000_xz/', 'genomic.idx')) / 1e9
+            pval_size = os.path.getsize(os.path.join(compressed_files_dir + file_name + '_10000_xz/', 'pval.idx')) / 1e9
+
+            file_sizes[file_name] = {'tsv': tsv_size,
+                                     'bgz': bgz_size,
+                                     'tbi': tbi_size,
+                                     'new': new_size,
+                                     'gen': gen_size,
+                                     'pval': pval_size}
+
+    return file_sizes
+
+
+def plot_file_sizes(file_sizes,
+                    out):
+
+    # for each file, plot bar graph for each file size
+    # x axis = file type
+    # y axis = file size (GB)
+    # color = file type
+    # bar graph
+
+    color_by_file_type = {'tsv': 'black',
+                            'bgz': 'green',
+                            'tbi': 'orange',
+                            'new': 'blue',
+                            'gen': 'purple',
+                            'pval': 'red'}
+
+    fig, ax = plt.subplots(1, 1, figsize=(10, 5), dpi=300)
+    ax.set_title('File Sizes', fontsize=16)
+    ax.set_xlabel('File Type', fontsize=14)
+    ax.set_ylabel('File Size (GB)', fontsize=14)
+
+    x_points = range(len(file_sizes.keys()))
+    width = 0.3
+
+    full_files = ['tsv', 'bgz', 'new']
+    for i, file_name in enumerate(file_sizes.keys()):
+        x_offset = 0
+        for j, file_type in enumerate(full_files):
+            x_offset += width
+            if file_type == '.bgz':
+                ax.bar(i + x_offset, file_sizes[file_name][file_type],
+                       color=color_by_file_type[file_type],
+                       label=file_type, alpha=0.7, width=width)
+                # stack '.tbi' on top
+                ax.bar(i + x_offset, file_sizes[file_name]['tbi'],
+                       color=color_by_file_type['tbi'],
+                       label='tbi', alpha=0.7, width=width, bottom=file_sizes[file_name][file_type])
+            elif file_type == 'new':
+                ax.bar(i + x_offset, file_sizes[file_name][file_type],
+                       color=color_by_file_type[file_type],
+                       label=file_type, alpha=0.7, width=width)
+                # stack 'gen' and 'pval' on top
+                ax.bar(i + x_offset, file_sizes[file_name]['gen'],
+                       color=color_by_file_type['gen'],
+                       label='gen', alpha=0.7, width=width, bottom=file_sizes[file_name][file_type])
+                ax.bar(i + x_offset, file_sizes[file_name]['pval'],
+                       color=color_by_file_type['pval'],
+                       label='pval', alpha=0.7, width=width, bottom=file_sizes[file_name][file_type] + file_sizes[file_name]['gen'])
+            else:
+                ax.bar(i + x_offset, file_sizes[file_name][file_type],
+                       color=color_by_file_type[file_type],
+                       label=file_type, alpha=0.7, width=width)
+
+    # format
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    plt.tight_layout()
+    # remove x axis labels
+    ax.set_xticks([])
+    # log scale
+    # ax.set_yscale('log')
+
+    # custom legend for file ( types rectangles )
+    handles = [plt.Rectangle((0, 0), 1, 1,
+                             color=color_by_file_type[file_type],
+                             alpha=0.7, label=file_type)
+               for file_type in color_by_file_type.keys()]
+
+    ax.legend(handles=handles, frameon=False, title='File Type')
+    plt.tight_layout()
+
+    # save
+    plt.savefig(os.path.join(out, 'file_sizes.png'))
+
+
 
 def main():
     args = parse_args()
@@ -170,6 +269,13 @@ def main():
                           tabix_file_sizes,
                           new_times,
                           args.out)
+
+    file_names = list(tabix_times.keys())
+    file_sizes = get_file_sizes(args.compressed_files_dir,
+                                file_names)
+
+    plot_file_sizes(file_sizes,
+                    args.out)
 
 
 if __name__ == '__main__':
