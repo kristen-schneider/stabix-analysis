@@ -17,8 +17,8 @@ def parse_args():
     return parser.parse_args()
 
 def read_tabix_times_data(tabix_times_file):
-    # Bin,Gene,Gene_Size,Tabix_Times
-    tabix_data = defaultdict()
+    # GWAS_FILE,Sig_Genes,Sig_SNPs,Tabix_Time(s)
+    tabix_data = {}
     header = None
     f = open(tabix_times_file, 'r')
     for line in f:
@@ -26,74 +26,88 @@ def read_tabix_times_data(tabix_times_file):
             header = line.strip().split(',')
             continue
         L = line.strip().split(',')
-        bin = L[0]
-        gene = L[1]
-        gene_size = int(L[2])
-        tabix_times = [float(x) for x in L[3:]]
+        gwas_file = L[0]
+        genes = int(L[1])
+        snps = int(L[2])
+        total_tabix_time = float(L[3])
 
-        try:
-            tabix_data[bin][gene_size].extend(tabix_times)
-        except KeyError:
-            try:
-                tabix_data[bin][gene_size] = tabix_times
-            except KeyError:
-                tabix_data[bin] = {gene_size: tabix_times}
+        tabix_data[gwas_file] = (genes, snps, total_tabix_time)
 
     return tabix_data
 
 
 def plot_tabix_times_hist(tabix_times,
+                          num_genes,
+                          pval,
                           out):
-    bins = [0, 0.5e9, 1e9, 1.5e9, 2e9, 2.5e9, 3e9]
-    bin_names = ['0-0.5GB', '0.5-1GB', '1-1.5GB', '1.5-2GB', '2-2.5GB', '2.5-3GB']
-
 
     fig, ax = plt.subplots(1, 1, figsize=(10, 4), dpi=300)
+    all_file_times = []
+    for gwas_file, (genes, snps, total_time) in tabix_times.items():
+        all_file_times.append(total_time)
 
-    for bin, gene_sizes in tabix_times.items():
-        bin_times = []
-        for gene_size, times in gene_sizes.items():
-            bin_times.extend(times)
-        ax.hist(bin_times, bins=50, alpha=0.5, label=bin, density=True)
+    ax.hist(all_file_times, bins=10, alpha=0.5, density=True)
 
-    ax.set_xlabel('Tabix search time (s)')
-    ax.set_ylabel('Density')
-    ax.set_title('Tabix Search Times by Gene Size')
+    ax.set_xlabel('Tabix Search Time (s)')
+    ax.set_ylabel('Frequency')
+    ax.set_title('Tabix Search Times', fontweight='bold')
 
     # format plot
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
-    ax.legend(frameon=False)
 
+    # add text box about the data
+    num_gwas_files = len(tabix_times)
+    text = 'Number of GWAS Files: {}\n'.format(num_gwas_files)
+    text += 'Number of Genes: {}\n'.format(num_genes)
+    text += 'P-value Threshold: {}\n'.format(pval)
+    text += 'Mean Time: {:.2f}s\n'.format(sum(all_file_times) / len(all_file_times))
+    ax.text(0.95, 0.95, text, verticalalignment='top', horizontalalignment='right',
+            transform=ax.transAxes, fontsize=8,
+            bbox=dict(facecolor='none', alpha=0.5, edgecolor='none'))
+
+    plt.tight_layout()
     fig.savefig(out + 'tabix_search_times_hist.png')
 
-def plot_tabix_times_by_gene_size(tabix_times,
-                                  out):
 
-    # plot a scatter plot of tabix search times (X) vs gene size (Y) for all files
+def plot_tabix_times_by_num_hits(tabix_times,
+                                 num_genes,
+                                 pval,
+                                 out):
+
+    # plot violoin plot of number of Gene Hits (X) vs Tabix Search times (Y) for all files
 
     fig, ax = plt.subplots(1, 1, figsize=(10, 4), dpi=300)
-    for bin, gene_sizes in tabix_times.items():
-        x_data = []
-        y_data = []
-        for gene_size, times in gene_sizes.items():
-            avg_time = sum(times) / len(times)
-            x_data.append(avg_time)
-            y_data.append(gene_size)
+    data = {}
+    for gwas_file, (genes, snps, total_time) in tabix_times.items():
+        try:
+            data[genes].append(total_time)
+        except KeyError:
+            data[genes] = [total_time]
 
-        ax.scatter(x_data, y_data, alpha=0.5, label=bin)
-
-
-    ax.set_xlabel('Average Tabix Search Time')
-    ax.set_ylabel('Gene Size')
-    ax.set_title('Tabix Search Times by Gene Size')
+    ax.violinplot(data.values(), showmeans=True, showmedians=True)
+    ax.set_xlabel('Number of Gene Hits\n(p-value < ' + str(pval) + ')')
+    ax.set_ylabel('Tabix Search Time (s)')
+    ax.set_title('Tabix Search Times by\nNumber of Gene Hits', fontweight='bold')
 
     # format plot
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
-    ax.legend(title='File Size', frameon=False)
+    # x-axis ticks
+    ax.set_xticks(range(1, 4))
+    ax.set_xticklabels(data.keys())
 
-    fig.savefig(out + 'tabix_search_times_by_gene_size_scatter.png')
+    # add text box about the data
+    num_gwas_files = len(tabix_times)
+    text = 'Number of GWAS Files: {}\n'.format(num_gwas_files)
+    text += 'Number of Genes: {}\n'.format(num_genes)
+    text += 'P-value Threshold: {}\n'.format(pval)
+    ax.text(0.80, 0.45, text, verticalalignment='top', horizontalalignment='right',
+            transform=ax.transAxes, fontsize=8, bbox=dict(facecolor='none', alpha=0.5, edgecolor='none'))
+
+    plt.tight_layout()
+    fig.savefig(out + 'tabix_search_times_by_gene_hits.png')
+
 
 def read_tabix_results_data(tabix_results_file):
     header = None
@@ -144,21 +158,30 @@ def plot_tabix_results_hist(tabix_results,
 
 def main():
     args = parse_args()
+    num_genes = 20386
+    pval = 5e-08
 
     print('Reading tabix times data...')
     tabix_times = read_tabix_times_data(args.times)
     print('...plotting times histograms...')
     plot_tabix_times_hist(tabix_times,
+                          num_genes,
+                          pval,
                           args.out)
     print('...plotting times scatter plot...')
-    plot_tabix_times_by_gene_size(tabix_times,
-                                  args.out)
-
-    print('Reading tabix results data...')
-    tabix_results = read_tabix_results_data(args.results)
-    print('...plotting results histograms...')
-    plot_tabix_results_hist(tabix_results,
-                            args.out)
+    plot_tabix_times_by_num_hits(tabix_times,
+                                 num_genes,
+                                 pval,
+                                 args.out)
+    # print('...plotting times scatter plot...')
+    # plot_tabix_times_by_gene_size(tabix_times,
+    #                               args.out)
+    #
+    # print('Reading tabix results data...')
+    # tabix_results = read_tabix_results_data(args.results)
+    # print('...plotting results histograms...')
+    # plot_tabix_results_hist(tabix_results,
+    #                         args.out)
 
 
 if __name__ == '__main__':
