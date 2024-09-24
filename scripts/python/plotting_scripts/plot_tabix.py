@@ -16,26 +16,6 @@ def parse_args():
                         help='output directory for plots')
     return parser.parse_args()
 
-def read_tabix_times_data(tabix_times_file):
-    # GWAS_FILE,Sig_Genes,Sig_SNPs,Tabix_Time(s)
-    tabix_data = {}
-    header = None
-    f = open(tabix_times_file, 'r')
-    for line in f:
-        if header == None:
-            header = line.strip().split(',')
-            continue
-        L = line.strip().split(',')
-        gwas_file = L[0]
-        genes = int(L[1])
-        snps = int(L[2])
-        total_tabix_time = float(L[3])
-
-        tabix_data[gwas_file] = (genes, snps, total_tabix_time)
-
-    return tabix_data
-
-
 def plot_tabix_times_hist(tabix_times,
                           num_genes,
                           pval,
@@ -162,7 +142,7 @@ def main():
     pval = 5e-08
 
     print('Reading tabix times data...')
-    tabix_times = read_tabix_times_data(args.times)
+    tabix_times = plot_utils.read_tabix_times_data(args.times)
     print('...plotting times histograms...')
     plot_tabix_times_hist(tabix_times,
                           num_genes,
