@@ -201,7 +201,6 @@ def plot_file_sizes(file_sizes,
 
     fig, ax = plt.subplots(1, 1, figsize=(10, 5), dpi=300)
     ax.set_title('File Sizes', fontsize=16)
-    ax.set_xlabel('File Type', fontsize=14)
     ax.set_ylabel('File Size (GB)', fontsize=14)
 
     x_points = range(len(file_sizes.keys()))

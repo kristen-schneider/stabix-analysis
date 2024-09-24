@@ -35,26 +35,12 @@ python scripts/python/plotting_scripts/plot_tabix.py
     --results figures/pub_figures/data/short-ukbb-tabix_search_results.csv
     --out figures/pub_figures/png/short-ukbb-
 ```
-Plot tabix search times per gene, colored by bgz file size.
 
 <details>
   
 ![tabix_times](figures/pub_figures/png/short-ukbb-tabix_search_times_hist.png)<br>
-
-</details>
-
-Plot tabix search times by gene size, colored by bgz file size.
-
-<details>
-  
+![tabix_hits](figures/pub_figures/png/short-ukbb-tabix_results_hist.png)<br>
+![tabix_times_hits](figures/pub_figures/png/short-ukbb-tabix_search_times_by_gene_hits.png)<br>
 ![tabix_times_gene_size](figures/pub_figures/png/short-ukbb-tabix_search_times_by_gene_size_scatter.png)<br>
-
-</details>
-
-Plot tabix search results: number of significant hits per file.
-
-<details>
-  
-![tabix_times](figures/pub_figures/png/short-ukbb-tabix_results_hist.png)<br>
 
 </details>
