@@ -113,6 +113,7 @@ def read_tabix_results(tabix_results_file):
                 tabix_results[gwas_file] = [(genes, snps)]
         else:
             # reading tabix results
+            print(gwas_file, line)
             gene_records += 1
 
     return tabix_results
