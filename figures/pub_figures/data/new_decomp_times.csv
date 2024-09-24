@@ -1,0 +1,18 @@
+GWAS file: /Users/krsc0813/CLionProjects/gwas_local/gwas_files/icd10-E11-both_sexes.tsv
+genomic_index_read,5846μs
+genomic_index_query,6470432μs
+block_0_decompression,49456μs
+block_1_decompression,48398μs
+GWAS file: /Users/krsc0813/CLionProjects/gwas_local/gwas_files/continuous-103220-both_sexes.tsv
+genomic_index_read,5585μs
+genomic_index_query,6262677μs
+GWAS file: /Users/krsc0813/CLionProjects/gwas_local/gwas_files/continuous-22409-both_sexes-irnt.tsv
+genomic_index_read,5477μs
+genomic_index_query,6457523μs
+block_0_decompression,6860μs
+block_1_decompression,7372μs
+GWAS file: /Users/krsc0813/CLionProjects/gwas_local/gwas_files/phecode-473-both_sexes.tsv
+genomic_index_read,5377μs
+genomic_index_query,6342150μs
+block_0_decompression,20110μs
+block_1_decompression,18945μs
