@@ -7,7 +7,7 @@ import plot_utils as plot_utils
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Plot Tabix vs. XXX Results')
-    parser.add_argument('--tabix_times', type=str, required=True,
+    parser.add_argument('--tabix_results', type=str, required=True,
                         help='tabix search times')
     parser.add_argument('--new_times', type=str, required=True,
                         help='new search times')
@@ -23,14 +23,14 @@ def plot_compare_times(tabix_times,
                        pval,
                        out):
     # tabix times are in seconds (python time.time())
-    # new times are in nanoseconds (c++ chrono::high_resolution_clock::now())
+    # new times are in microseconds (??nanoseconds??) (c++ chrono::high_resolution_clock::now())
 
-    hits_colors = {0: 'purple',
-                   1: 'blue',
-                   2: 'green',
-                   3: 'yellow',
-                   4: 'orange',
-                   5: 'red'}
+    # hits_colors = {0: 'purple',
+    #                1: 'blue',
+    #                2: 'green',
+    #                3: 'yellow',
+    #                4: 'orange',
+    #                5: 'red'}
 
     # scatter: x = tabix time, y = new time, color = number of hits
     fig, ax = plt.subplots(1, 1, figsize=(6, 4), dpi=300)
@@ -38,9 +38,9 @@ def plot_compare_times(tabix_times,
     for gwas_file, (genes, snps, tabix_time) in tabix_times.items():
         if gwas_file not in new_times:
             continue
-        new_time = sum(new_times[gwas_file])
+        new_time = sum(new_times[gwas_file]) / 1e6
         num_hits = genes
-        ax.scatter(tabix_time, new_time, color=hits_colors[num_hits], alpha=0.7)
+        ax.scatter(tabix_time, new_time, alpha=0.7)
 
     ax.set_xlabel('Tabix Search Time (s)')
     ax.set_ylabel('New Search Time (s)')
@@ -55,12 +55,12 @@ def plot_compare_times(tabix_times,
             transform=ax.transAxes, fontsize=8,
             bbox=dict(facecolor='none', alpha=0.5, edgecolor='none'))
 
-    # legend
-    handles = [plt.Line2D([0], [0], marker='o', color='w',
-                          markerfacecolor=hits_colors[i], label=i, markersize=8)
-                for i in range(6)]
-
-    ax.legend(handles=handles, title='Number of Hits', frameon=False, fontsize=8)
+    # # legend
+    # handles = [plt.Line2D([0], [0], marker='o', color='w',
+    #                       markerfacecolor=hits_colors[i], label=i, markersize=8)
+    #             for i in range(6)]
+    #
+    # ax.legend(handles=handles, title='Number of Hits', frameon=False, fontsize=8)
 
     # format
     ax.spines['top'].set_visible(False)
@@ -172,9 +172,9 @@ def plot_file_sizes(file_sizes,
 def main():
     args = parse_args()
     num_genes = 20386
-    pval = 5e-08
+    pval = 7.3
 
-    tabix_times = plot_utils.read_tabix_times_data(args.tabix_times)
+    tabix_times = plot_utils.read_tabix_times_data(args.tabix_results)
     new_times = plot_utils.read_new_times_data(args.new_times)
     file_names = list(tabix_times.keys())
     file_sizes = get_file_sizes(args.compressed_files_dir,
