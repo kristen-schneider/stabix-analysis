@@ -1,5 +1,5 @@
 #snakemake --dryrun -s scripts/bash/tabix_time.smk --configfile data/tabix_test/tabix_config.yml -c 1 -j 1
-#snakemake -s scripts/bash/tabix_time.smk --configfile data/tabix_test/tabix_config.yml --dag | dot -Tpdf > dag.pdf
+#snakemake -s scripts/bash/tabix_time.smk --configfile data/tabix_test/tabix_config.yml --rulegraph | dot -Tpdf > dag.pdf
 shell.prefix("""
 . /Users/krsc0813/miniconda3/etc/profile.d/conda.sh
 conda activate snakemake;
@@ -27,8 +27,7 @@ rule all:
     input:
         f"{config.output_dir}all_gwas_data_removed.txt",
         f"{config.output_dir}all_pval_col_idx.txt",
-        f"{config.output_dir}all_tabix_query_results.txt",
-        f"{config.output_dir}all_tabix_query_times.txt"
+        f"{config.output_dir}all_tabix_query_results.txt"
 
 rule download_bgz:
     message: "Downloading bgz files."
@@ -84,8 +83,7 @@ rule tabix_search:
         tbx_file_name=f"{config.output_dir}{{root_file_name}}.tsv.bgz.tbi",
         pval_file_name=f"{config.output_dir}{{root_file_name}}-pval_col_idx.txt"
     output:
-        f"{config.output_dir}{{root_file_name}}-tabix_query_results.txt",
-        f"{config.output_dir}{{root_file_name}}-tabix_query_times.txt"
+        f"{config.output_dir}{{root_file_name}}-tabix_query_results.txt"
     shell:
         """
         conda activate snakemake
@@ -101,8 +99,7 @@ rule tabix_search:
 rule remove_gwas_data:
     message: "Removing GWAS files (.bgz and .tbi)."
     input:
-        f"{config.output_dir}{{root_file_name}}-tabix_query_results.txt",
-        f"{config.output_dir}{{root_file_name}}-tabix_query_times.txt",
+        f"{config.output_dir}{{root_file_name}}-tabix_query_results.txt"
     output:
         cleaned_file_name=f"{config.output_dir}{{root_file_name}}-gwas_data_removed.txt"
     params:
@@ -131,7 +128,6 @@ rule combine_pval_col_idx:
     message: "Combining pval column indexes."
     input:
         tabix_query_results=expand(f"{config.output_dir}{{root_file_name}}-tabix_query_results.txt", root_file_name=ROOT_FILE_NAMES),
-        tabix_query_times=expand(f"{config.output_dir}{{root_file_name}}-tabix_query_times.txt", root_file_name=ROOT_FILE_NAMES),
         pval_file_names=expand(f"{config.output_dir}{{root_file_name}}-pval_col_idx.txt", root_file_name=ROOT_FILE_NAMES)
     output:
         f"{config.output_dir}all_pval_col_idx.txt"
@@ -152,27 +148,6 @@ rule combine_tabix_query_results:
         cat {input.tabix_query_results} > {output}
         rm {input.tabix_query_results}
         """
-
-rule combine_tabix_query_times:
-    message: "Combining tabix query times."
-    input:
-        tabix_query_times=expand(f"{config.output_dir}{{root_file_name}}-tabix_query_times.txt", root_file_name=ROOT_FILE_NAMES)
-    output:
-        f"{config.output_dir}all_tabix_query_times.txt"
-    shell:
-        """
-        cat {input.tabix_query_times} > {output}
-        rm {input.tabix_query_times}
-        """
-
-
-
-
-
-
-
-
-
 
 
 
