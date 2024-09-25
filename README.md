@@ -44,3 +44,5 @@ python scripts/python/plotting_scripts/plot_tabix.py
 ![tabix_times_gene_size](figures/pub_figures/png/short-ukbb-tabix_search_times_by_gene_size_scatter.png)<br>
 
 </details>
+
+BED FILE: https://github.com/mchowdh200/icgc-data/blob/master/data_listings/genes_hg19.bed
