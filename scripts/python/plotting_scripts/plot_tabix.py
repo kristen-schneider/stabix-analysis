@@ -74,7 +74,7 @@ def plot_tabix_times_by_num_hits(tabix_times,
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     # x-axis ticks
-    ax.set_xticks(range(1, 4))
+    ax.set_xticks(range(1, 8))
     ax.set_xticklabels(data.keys())
 
     # add text box about the data

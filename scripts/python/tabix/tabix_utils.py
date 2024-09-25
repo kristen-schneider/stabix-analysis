@@ -5,14 +5,12 @@ import pysam
 import time
 
 
-def tabix_query_with_threshold(time_file,
-                               gene_name,
-                               chrm,
+def tabix_query_with_threshold(chrm,
                                start,
                                end,
                                gwas_file,
-                               p_value_idx=-1,
-                               p_value_threshold=5e-8):
+                               p_value_idx,
+                               p_value_threshold):
     '''
     Query a GWAS file for one gene using tabix
     :param chrm: chromosome
@@ -41,13 +39,14 @@ def tabix_query_with_threshold(time_file,
             if check_record(r, p_value_idx, p_value_threshold):
                 records.append(r)
     except ValueError:
-        return records
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        return records, elapsed_time
 
     end_time = time.time()
     elapsed_time = end_time - start_time
-    time_file.write(gene_name + ',' + str(elapsed_time) + '\n')
 
-    return records
+    return records, elapsed_time
 
 def get_genes(bed_file):
     # {gene: {chrom: [start, end]}}
@@ -70,9 +69,10 @@ def check_record(record,
                  p_value_idx,
                  p_value_threshold):
     split_record = record.split()
+    # TODO: p <= 5e-08 --> p >= 7.3 (-log_10(P))
     # check if the record has a p-value below the threshold
     try:
-        return float(split_record[p_value_idx]) <= p_value_threshold
+        return float(split_record[p_value_idx]) >= p_value_threshold
     except ValueError:
         return False
 

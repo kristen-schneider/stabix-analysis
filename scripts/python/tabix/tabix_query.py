@@ -1,12 +1,15 @@
 import argparse
+
+from numpy.distutils.system_info import xft_info
+
 import tabix_utils
 import os
 import sys
 
 
-num_genes = 100
-p_value_threshold = 5e-8
-p_value_idx = 9
+# num_genes = 100
+# p_value_threshold = 5e-8
+# p_value_idx = 9
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Sandbox script')
@@ -32,19 +35,10 @@ def main():
     p_value_idx_dict = tabix_utils.read_pval_index(args.pval_cols)
     p_value_threshold = float(args.pval_threshold)
 
-    gwas_file_size = os.path.getsize(gwas_file)
-
-    output_tabix_time_file = args.tabix_out + '-tabix_query_times.txt'
-    # print('Output file: {}'.format(output_tabix_time_file))
-    time_file = open(output_tabix_time_file, 'a')
-    time_file.truncate(0)
-    time_file.write('GWAS file: {}'.format(gwas_basename) + ', Bytes: {}\n'.format(gwas_file_size))
-    time_file.write('Gene,Time(sec)\n')
-
     output_tabix_query_file = args.tabix_out + '-tabix_query_results.txt'
-    # print('Output file: {}'.format(output_tabix_query_file))
-    query_file = open(output_tabix_query_file, 'a')
-    query_file.truncate(0)
+
+    out_file = open(output_tabix_query_file, 'a')
+    out_file.truncate(0)
 
     # if empty, print error and exit
     if not p_value_idx_dict:
@@ -52,36 +46,48 @@ def main():
         sys.exit(1)
 
     for p in p_value_idx_dict:
-        # print gwas file and p-value index and label to query file
-        query_file.write('GWAS file: {}'.format(gwas_basename) +
-                         ',index: {}'.format(p) +
+        # header for results file
+        out_file.write('GWAS file: {}'.format(gwas_basename.replace('.tsv.bgz','')) +
+                         ',index: {}'.format(p-1) +
                          ',title: {}\n'.format(p_value_idx_dict[p]))
 
-        query_idx = 0
         total_sig_snps = 0
         total_sig_genes = 0
         # write gwas file and size to query file
+        gene_i = 0
         for gene in genes:
-            query_file.write('Gene: {}\n'.format(gene))
+            records = []
+            if gene == "CSF2RA":
+                x = 0
+            gene_results = []
             for chrom in genes[gene]:
                 for start, end in genes[gene][chrom]:
-                    records = tabix_utils.tabix_query_with_threshold(time_file,
-                                                                     gene,
-                                                                     chrom,
-                                                                     start,
-                                                                     end,
-                                                                     gwas_file,
-                                                                     p-1,
-                                                                     p_value_threshold)
+                    records, time = tabix_utils.tabix_query_with_threshold(chrom,
+                                                                           start,
+                                                                           end,
+                                                                           gwas_file,
+                                                                           p-1,
+                                                                           p_value_threshold)
+                    gene_results.append((records, time))
                     if records:
-                        split_records = [record.split() for record in records]
-                        for record in split_records:
-                            query_file.write('\t'.join(record) + '\n')
                         total_sig_snps += len(records)
                         total_sig_genes += 1
-            query_idx += 1
+            # write gene and time to query file
+            gene_total_time = sum([time for _, time in gene_results])
+            out_file.write('Gene: {}'.format(gene) + ',time: {}\n'.format(gene_total_time))
+            # write gene results to query file
+            # print(gene_i, gene, len(records), total_sig_snps)
+            for records, _ in gene_results:
+                split_records = [r.split() for r in records]
+                for record in split_records :
+                    out_file.write('\t'.join(record) + '\n')
 
-        query_file.write('END' +
+            gene_i += 1
+
+        out_file.write('END' +
+                         ',GWAS file: {}'.format(gwas_basename.replace('.tsv.bgz','')) +
+                         ',index: {}'.format(p) +
+                         ',title: {}'.format(p_value_idx_dict[p]) +
                          ',Genes: {}'.format(total_sig_genes) +
                          ',SNPs: {}\n'.format(total_sig_snps))
 
