@@ -7,30 +7,69 @@ import plot_utils as plot_utils
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Plot Tabix vs. XXX Results')
-    parser.add_argument('--tabix_results', type=str, required=True,
-                        help='tabix search times')
-    parser.add_argument('--new_times', type=str, required=True,
-                        help='new search times')
+    parser.add_argument('--tabix_files', type=str, required=True,
+                        help='tabix search times by file')
+    parser.add_argument('--new_files', type=str, required=True,
+                        help='new search times by file')
+    parser.add_argument('--tabix_genes', type=str, required=True,
+                        help='tabix search times by gene')
+    parser.add_argument('--new_genes', type=str, required=True,
+                        help='new search times by gene')
     parser.add_argument('--out', type=str, required=True,
                         help='output directory for plots')
     parser.add_argument('--compressed_files_dir', type=str, required=True,
                         help='directory with compressed files')
     return parser.parse_args()
 
-def plot_compare_times(tabix_times,
-                       new_times,
-                       num_genes,
-                       pval,
-                       out):
-    # tabix times are in seconds (python time.time())
-    # new times are in microseconds (??nanoseconds??) (c++ chrono::high_resolution_clock::now())
+def plot_compare_times_genes(tabix_genes,
+                             new_genes,
+                             tabix_gene_hits,
+                             out):
 
-    # hits_colors = {0: 'purple',
-    #                1: 'blue',
-    #                2: 'green',
-    #                3: 'yellow',
-    #                4: 'orange',
-    #                5: 'red'}
+    fig, ax = plt.subplots(1, 1, figsize=(10, 10), dpi=300)
+    tabix_times_x= []
+    new_times_y = []
+    gene_records = []
+
+    for gwas_file, genes in tabix_genes.items():
+        if gwas_file not in new_genes:
+            continue
+        new_genes = new_genes[gwas_file]
+        for gene, time in genes.items():
+            tabix_times_x.append(time)
+            new_times_y.append(new_genes[gene])
+            gene_records.append(tabix_gene_hits[gwas_file][gene])
+
+    plot = ax.scatter(tabix_times_x, new_times_y,
+               c=gene_records, cmap='Paired',
+               alpha=0.7)
+    ax.set_ylim(0, 0.2)
+    ax.set_xlim(0, 0.2)
+
+    ax.set_xlabel('Tabix Search Time (s)')
+    ax.set_ylabel('New Search Time (s)')
+    ax.set_title('Tabix vs. New Search Times By Gene', fontweight='bold')
+
+    # format
+    cbar = plt.colorbar(plot)
+    cbar.set_label('Number of Hits')
+
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    plt.tight_layout()
+
+    # save
+    plt.savefig(os.path.join(out, 'tabix_vs_new_search_times_genes.png'))
+
+
+
+def plot_compare_times_files(tabix_times,
+                             new_times,
+                             num_genes,
+                             pval,
+                             out):
+    # tabix times are in seconds (python time.time())
+    # new times are in microseconds (c++ chrono::high_resolution_clock::now())
 
     # scatter: x = tabix time, y = new time, color = number of hits
     fig, ax = plt.subplots(1, 1, figsize=(6, 4), dpi=300)
@@ -38,7 +77,7 @@ def plot_compare_times(tabix_times,
     for gwas_file, (genes, snps, tabix_time) in tabix_times.items():
         if gwas_file not in new_times:
             continue
-        new_time = sum(new_times[gwas_file]) / 1e6
+        new_time = new_times[gwas_file]
         num_hits = genes
         ax.scatter(tabix_time, new_time, alpha=0.7)
 
@@ -69,29 +108,6 @@ def plot_compare_times(tabix_times,
 
     # save
     plt.savefig(os.path.join(out, 'tabix_vs_new_search_times.png'))
-
-def get_file_sizes(compressed_files_dir,
-                   file_names):
-    # file: (tsv, bgz, tbi, gen, pval)
-    file_sizes = defaultdict(dict)
-    for file in os.listdir(compressed_files_dir):
-        file_name = file.replace('.tsv', '')
-        if file_name in file_names:
-            tsv_size = os.path.getsize(os.path.join(compressed_files_dir, file_name + '.tsv')) / 1e9
-            bgz_size = os.path.getsize(os.path.join(compressed_files_dir, file_name + '.tsv.bgz')) / 1e9
-            tbi_size = os.path.getsize(os.path.join(compressed_files_dir, file_name + '.tsv.bgz.tbi')) / 1e9
-            new_size = os.path.getsize(os.path.join(compressed_files_dir + file_name + '_10000_xz/', file_name + '_10000_xz.grlz')) / 1e9
-            gen_size = os.path.getsize(os.path.join(compressed_files_dir + file_name + '_10000_xz/', 'genomic.idx')) / 1e9
-            pval_size = os.path.getsize(os.path.join(compressed_files_dir + file_name + '_10000_xz/', 'pval.idx')) / 1e9
-
-            file_sizes[file_name] = {'tsv': tsv_size,
-                                     'bgz': bgz_size,
-                                     'tbi': tbi_size,
-                                     'new': new_size,
-                                     'gen': gen_size,
-                                     'pval': pval_size}
-
-    return file_sizes
 
 
 def plot_file_sizes(file_sizes,
@@ -167,24 +183,31 @@ def plot_file_sizes(file_sizes,
     # save
     plt.savefig(os.path.join(out, 'file_sizes.png'))
 
-
-
 def main():
     args = parse_args()
     num_genes = 20386
     pval = 7.3
 
-    tabix_times = plot_utils.read_tabix_times_data(args.tabix_results)
-    new_times = plot_utils.read_new_times_data(args.new_times)
-    file_names = list(tabix_times.keys())
-    file_sizes = get_file_sizes(args.compressed_files_dir,
+    tabix_times_file = plot_utils.read_tabix_times_data(args.tabix_files)
+    new_times_file = plot_utils.read_new_times_data(args.new_files)
+    tabix_times_genes, tabix_gene_hits = plot_utils.read_tabix_genes(args.tabix_genes)
+    new_times_genes, new_gene_hits = plot_utils.read_new_genes(args.new_genes)
+
+
+    file_names = list(tabix_times_file.keys())
+    file_sizes = plot_utils.get_file_sizes(args.compressed_files_dir,
                                 file_names)
 
-    plot_compare_times(tabix_times,
-                       new_times,
-                       num_genes,
-                       pval,
-                       args.out)
+    plot_compare_times_genes(tabix_times_genes,
+                             new_times_genes,
+                             tabix_gene_hits,
+                             args.out)
+
+    plot_compare_times_files(tabix_times_file,
+                             new_times_file,
+                             num_genes,
+                             pval,
+                             args.out)
 
     plot_file_sizes(file_sizes,
                     args.out)
