@@ -2,8 +2,6 @@ import pandas as pd
 import numpy as np
 import pysam
 # import tabix
-import time
-
 
 def tabix_query_with_threshold(chrm,
                                start,
@@ -23,8 +21,6 @@ def tabix_query_with_threshold(chrm,
     '''
     records = []
 
-    # time tabix query
-    start_time = time.time()
     try:
         tb = pysam.TabixFile(gwas_file)
         # tb = tabix.open(gwas_file)
@@ -39,14 +35,9 @@ def tabix_query_with_threshold(chrm,
             if check_record(r, p_value_idx, p_value_threshold):
                 records.append(r)
     except ValueError:
-        end_time = time.time()
-        elapsed_time = end_time - start_time
-        return records, elapsed_time
+        return records
 
-    end_time = time.time()
-    elapsed_time = end_time - start_time
-
-    return records, elapsed_time
+    return records
 
 def get_genes(bed_file):
     # {gene: {chrom: [start, end]}}
