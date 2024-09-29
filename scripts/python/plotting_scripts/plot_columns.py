@@ -1,101 +1,44 @@
+import argparse
 import matplotlib.pyplot as plt
-import numpy as np
-
 from matplotlib.patches import Patch
 from matplotlib.lines import Line2D
+from pysam.libcvcf import defaultdict
 
-def plot_column_by_block_scatter(column_sizes,
-                                 column_decompression_times,
-                                 colors,
-                                 out_png):
+import plot_utils as pltu
 
-    data_type_markers = {'int': 'o',
-                         'float': 's',
-                            'string': '^'}
+def parse_args():
+    parser = argparse.ArgumentParser(description='Plot file sizes')
+    parser.add_argument('--decomp', type=str, required=True,
+                        help='dir with decompression times')
+    parser.add_argument('--colors', type=str, required=True,
+                        help='path to file which lists for each codec')
+    parser.add_argument('--out', type=str, required=True,
+                        help='Output directory for plots')
+    return parser.parse_args()
 
-    # one scatter plot of column compressed sizes vs decompression times for each block size
-    # color = codec cocktail
-
-    block_sizes = list(column_sizes.keys())
-    codecs = list(column_sizes[block_sizes[0]].keys())
-    data_types = list(column_sizes[block_sizes[0]][codecs[0]].keys())
-
-    fig, ax = plt.subplots(4, 1, figsize=(10, 15), dpi=300)
-
-    for i, block_size in enumerate(block_sizes):
-        for codec in codecs:
-            for data_type in data_types:
-                ax[i].scatter(column_sizes[block_size][codec][data_type],
-                              column_decompression_times[block_size][codec][data_type],
-                              color=colors[codec],
-                              s=20,
-                              marker=data_type_markers[data_type],
-                              alpha=0.5)
-                ax[i].set_title('Block Size: ' + block_size, fontsize=16, fontweight='bold')
-                ax[i].set_xlabel('Column compressed size\n(bytes)')
-                ax[i].set_ylabel('Decompression time\n(microseconds)')
-    # for i, block_size in enumerate(column_sizes):
-    #     for codec in column_sizes[block_size]:
-    #         for data_type in column_sizes[block_size][codec]:
-    #             print(block_size, codec, data_type)
-    #             ax[i].scatter(column_sizes[block_size][codec][data_type],
-    #                           column_decompression_times[block_size][codec][data_type],
-    #                           color=colors[codec],
-    #                           s=20,
-    #                           marker=data_type_markers[data_type],
-    #                           alpha=0.5)
-    #             ax[i].set_title('Block Size: ' + block_size, fontsize=16, fontweight='bold')
-    #             ax[i].set_xlabel('Column compressed size\n(bytes)')
-    #             ax[i].set_ylabel('Decompression time\n(microseconds)')
-
-    # FORMATTING
-    # legend, no frame
-    # add custom legend for codecs
-    codec_legend_elements = [Patch(facecolor=colors[codec], edgecolor='black', label=codec)
-                            for codec in colors]
-    # add markers for data types
-    data_type_legend_elements = [Line2D([0], [0], marker=data_type_markers[data_type],
-                                        color='w', markerfacecolor='black', label=data_type)
-                                for data_type in data_type_markers]
-    ax[0].legend(handles=codec_legend_elements + data_type_legend_elements, loc='upper left', frameon=False)
-    # ax[0].legend(handles=codec_legend_elements, loc='upper left', frameon=False)
-
-    # remove spines
-    for i in range(4):
-        ax[i].spines['top'].set_visible(False)
-        ax[i].spines['right'].set_visible(False)
-
-    # FORMATTING
-    plt.tight_layout()
-
-    # SAVE
-    plt.savefig(out_png)
 
 def plot_column_by_data_type_scatter(column_sizes,
                                      column_decompression_times,
                                      block_sizes,
                                      colors,
-                                     out_png):
-    # rows by block size
-    # columns by data type
-    data_types = 3
-    fig, ax = plt.subplots(len(block_sizes), data_types,
-                           figsize=(15, 15), dpi=300,
+                                     out):
+    data_types = ['int', 'float', 'string']
+    fig, ax = plt.subplots(len(block_sizes), len(data_types),
+                           figsize=(23, 20), dpi=300,
                            sharex=False, sharey=False)
+    codecs = []
 
-    block_sizes = ['10000', '15000', '20000', 'map']
-    codecs = list(column_sizes[block_sizes[0]].keys())
-    data_types = list(column_sizes[block_sizes[0]][codecs[0]].keys())
 
     for i, block_size in enumerate(block_sizes):
         for j, data_type in enumerate(data_types):
-            for codec in codecs:
+            for codec in column_sizes[block_size]:
+                if codec not in codecs:
+                    codecs.append(codec)
                 ax[i, j].scatter(column_sizes[block_size][codec][data_type],
                                  column_decompression_times[block_size][codec][data_type],
                                  color=colors[codec],
                                  s=20,
                                  alpha=0.5)
-
 
 
     # LABELING
@@ -118,7 +61,7 @@ def plot_column_by_data_type_scatter(column_sizes,
     # legend, no frame
     # add custom legend for codecs
     codec_legend_elements = [Patch(facecolor=colors[codec], edgecolor='black', label=codec)
-                            for codec in colors]
+                            for codec in codecs]
     ax[0, 0].legend(handles=codec_legend_elements, loc='upper left', frameon=False)
 
     # remove spines
@@ -130,5 +73,37 @@ def plot_column_by_data_type_scatter(column_sizes,
     # FORMATTING
     # plt.tight_layout()
 
+    out_name = out + 'column_decompression.png'
     # SAVE
-    plt.savefig(out_png)
+    plt.savefig(out_name)
+
+def main():
+    args = parse_args()
+    colors = pltu.read_colors(args.colors)
+
+    # file_names = ['continuous-103220-both_sexes']
+    file_names = ['continuous-30130-both_sexes-irnt']
+    codecs = ['bz2', 'xz']
+    block_sizes = ['2000', '5000', '10000']
+
+    decomp_col_times = defaultdict(dict)
+    comp_col_sizes = defaultdict(dict)
+
+    for file_name in file_names:
+        for block_size in block_sizes:
+            for codec in codecs:
+                full_file_name = args.decomp + '/' + file_name + '_' + block_size + '_' + codec + '_column_decompression.csv'
+                decomp_col_times, comp_col_sizes = pltu.read_column_decompression(full_file_name,
+                                                                                  block_size,
+                                                                                  decomp_col_times,
+                                                                                  comp_col_sizes)
+        plot_column_by_data_type_scatter(comp_col_sizes,
+                                         decomp_col_times,
+                                         block_sizes,
+                                         colors,
+                                         args.out)
+
+
+
+if __name__ == '__main__':
+    main()
