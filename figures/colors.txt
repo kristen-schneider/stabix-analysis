@@ -4,4 +4,5 @@ fpfvb,mediumpurple
 xz,darkorange
 zlib,deeppink
 zstd,steelblue
+combo,olivedrab
 tabix,black
