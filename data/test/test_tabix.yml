@@ -1,0 +1,29 @@
+ukbb_manifest:
+  "/Users/krsc0813/PycharmProjects/gwas-analysis/data/UKBB/test-ukbb-manifest.csv"
+
+bed_file:
+  "/Users/krsc0813/PycharmProjects/gwas-analysis/data/bed_files/hg19.protein_coding.bed"
+
+pval_threshold:
+  7.3
+
+pval_indexes:
+  "/Users/krsc0813/PycharmProjects/gwas-analysis/data/test/ten_pvals.txt"
+
+root_dir:
+  "/Users/krsc0813/PycharmProjects/gwas-analysis/"
+
+conda_env_dir:
+  "/Users/krsc0813/PycharmProjects/gwas-analysis/conda_envs/"
+
+scripts_dir:
+  "/Users/krsc0813/PycharmProjects/gwas-analysis/scripts/python/tabix/"
+
+gwas_dir:
+  "/Users/krsc0813/Library/CloudStorage/OneDrive-UCB-O365/Desktop/gwas-analysis/data/"
+
+tabix_dir:
+  "/Users/krsc0813/Library/CloudStorage/OneDrive-UCB-O365/Desktop/gwas-analysis/tabix_output/"
+
+wget_prefix:
+  "https://pan-ukb-us-east-1.s3.amazonaws.com/sumstats_flat_files/"
