@@ -23,52 +23,44 @@ TBX_URLS = PD_MANIFEST["wget_tabix"].tolist()
 
 rule all:
     input:
-        f"{config.output_dir}lazer_setup.done"
+        expand(f"{config.gwas_dir}{{root_file_name}}_2000_combo/{{root_file_name}}_2000_combo.grlz", root_file_name=ROOT_FILE_NAMES),
+        expand(f"{config.gwas_dir}{{root_file_name}}_2000_combo/genomic.idx", root_file_name=ROOT_FILE_NAMES),
+        expand(f"{config.gwas_dir}{{root_file_name}}_2000_combo/pval.idx, root_file_name=ROOT_FILE_NAMES),
+        expand(f"{config.gwas_dir}{{root_file_name}}_2000_combo/{{root_file_name}}.query", root_file_name=ROOT_FILE_NAMES)
 
-rule download_bgz:
-    message: "Downloading bgz files."
+rule compress_lazer:
+    message: "Compressing gwas files using lazer."
     input:
-        manifest=f"{config.ukbb_manifest}"
+        tsv_file_name=f"{config.gwas_dir}{{root_file_name}}.tsv"
     output:
-        bgz_file_name=f"{config.output_dir}{{root_file_name}}.tsv.bgz"
-    params:
-        url=lambda wildcards: BGZ_URLS[ROOT_FILE_NAMES.index(wildcards.root_file_name)]
+        lazer_file_name=f"{config.gwas_dir}{{root_file_name}}_2000_combo/{{root_file_name}}_2000_combo.grlz",
+        genomic_index_file_name=f"{config.gwas_dir}{{root_file_name}}_2000_combo/genomic.idx"
     shell:
         """
-        mkdir -p {config.output_dir}
-        cd {config.output_dir}
-        {params.url}
+        ./{config.bin_dir}gwas_compress {config.config_dir}{wildcards.root_file_name}_combo_2000.yml
         """
 
-rule download_tabix:
-    message: "Downloading tabix files."
+rule index_lazer:
+    message: "Indexing lazer files."
     input:
-        bgz_file_name=f"{config.output_dir}{{root_file_name}}.tsv.bgz"
+        lazer_file_name=f"{config.gwas_dir}{{root_file_name}}_2000_combo/{{root_file_name}}_2000_combo.grlz",
+        genomic_index_file_name=f"{config.gwas_dir}{{root_file_name}}_2000_combo/genomic.idx"
     output:
-        tbx_file_name=f"{config.output_dir}{{root_file_name}}.tsv.bgz.tbi"
-    params:
-        url=lambda wildcards: TBX_URLS[ROOT_FILE_NAMES.index(wildcards.root_file_name)]
+        pval_index_file_name=f"{config.gwas_dir}{{root_file_name}}_2000_combo/pval.idx"
     shell:
         """
-        cd {config.output_dir}
-        {params.url}
+        ./{config.bin_dir}gwas_index {config.config_dir}{wildcards.root_file_name}_combo_2000.yml
         """
 
-rule setup:
-    message: "Setting up the environment."
+rule decompress_lazer:
+    message: "Decompressing gwas files using lazer."
     input:
-        bgz_file_names=expand(f"{config.output_dir}{{root_file_name}}.tsv.bgz", root_file_name=ROOT_FILE_NAMES),
-        tbx_file_names=expand(f"{config.output_dir}{{root_file_name}}.tsv.bgz.tbi", root_file_name=ROOT_FILE_NAMES)
+        lazer_file_name=f"{config.gwas_dir}{{root_file_name}}_2000_combo/{{root_file_name}}_2000_combo.grlz",
+        genomic_index_file_name=f"{config.gwas_dir}{{root_file_name}}_2000_combo/genomic.idx",
+        pval_index_file_name=f"{config.gwas_dir}{{root_file_name}}_2000_combo/pval.idx"
     output:
-        setup_file=f"{config.output_dir}lazer_setup.done"
+        tsv_file_name=f"{config.gwas_dir}{{root_file_name}}_2000_combo/{{root_file_name}}.query"
     shell:
         """
-        cd {config.lazer_dir}
-        git submodule init
-        git submodule update
-        mkdir -p build
-        cd build
-        cmake ..
-        make
-        touch {output.setup_file}
+        ./{config.bin_dir}gwas_decompress {config.config_dir}{wildcards.root_file_name}_combo_2000.yml
         """

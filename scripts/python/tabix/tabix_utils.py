@@ -72,9 +72,9 @@ def read_pval_index(pval_index_file):
     with open(pval_index_file, 'r') as f:
         header = f.readline()
         for line in f:
-            pval = int(line.strip().split(':')[0])
-            title = line.strip().split(':')[1]
-            pval_indexes[pval] = title
+            file_name = line.strip().split(',')[0]
+            pval_index = int(line.strip().split(',')[1])
+            pval_indexes[file_name] = pval_index
     f.close()
     return pval_indexes
 

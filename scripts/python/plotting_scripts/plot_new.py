@@ -68,13 +68,13 @@ def plot_compare_new_times(file_sizes,
                 plt.setp(tabix_vp['cmaxes'], color=colors['tabix'])
                 tabix_plotted = True
 
-                # write the gene name with the largest time
-                max_time = max(tabix_times_curr.values())
-                max_gene = [gene for gene, time in tabix_times_curr.items() if time == max_time][0]
-                ax[0].text(x_marks_dict['tabix'], max_time, max_gene, fontsize=6)
-                # write mean search time
-                mean_time = sum(tabix_times_curr.values()) / len(tabix_times_curr)
-                ax[0].text(x_marks_dict['tabix'], mean_time, 'Mean: {:.4f}'.format(mean_time), fontsize=6)
+                # # write the gene name with the largest time
+                # max_time = max(tabix_times_curr.values())
+                # max_gene = [gene for gene, time in tabix_times_curr.items() if time == max_time][0]
+                # ax[0].text(x_marks_dict['tabix'], max_time, max_gene, fontsize=6)
+                # # write mean search time
+                # mean_time = sum(tabix_times_curr.values()) / len(tabix_times_curr)
+                # ax[0].text(x_marks_dict['tabix'], mean_time, 'Mean: {:.4f}'.format(mean_time), fontsize=6)
 
 
                 # plot file size for tabix
@@ -89,13 +89,13 @@ def plot_compare_new_times(file_sizes,
                                       showmedians=True,
                                       widths=0.2)
 
-            # write the gene name with the largest time
-            max_time = max(genes.values())
-            max_gene = [gene for gene, time in genes.items() if time == max_time][0]
-            ax[0].text(x, max_time, max_gene, fontsize=6)
-            # write mean search time
-            mean_time = sum(genes.values()) / len(genes)
-            ax[0].text(x, mean_time, 'Mean: {:.4f}'.format(mean_time), fontsize=6)
+            # # write the gene name with the largest time
+            # max_time = max(genes.values())
+            # max_gene = [gene for gene, time in genes.items() if time == max_time][0]
+            # ax[0].text(x, max_time, max_gene, fontsize=6)
+            # # write mean search time
+            # mean_time = sum(genes.values()) / len(genes)
+            # ax[0].text(x, mean_time, 'Mean: {:.4f}'.format(mean_time), fontsize=6)
 
 
             # color the violins fill and lines around them with the codec color
@@ -152,9 +152,9 @@ def main():
     results_dir = args.results_dir
     out = args.out
 
-    codecs = ['bz2', 'xz']
+    codecs = ['zlib', 'bz2']
     block_sizes = [5000, 10000]
-    file_names = ['continuous-103220-both_sexes']
+    file_names = ['continuous-30130-both_sexes-irnt']
     suffix = '_new.txt'
     ext = '.txt'
 
@@ -166,6 +166,9 @@ def main():
     # print largest genes
     # print(sorted_gene_sizes[:10])
 
+    tabix_times, tabix_hits = plot_utils.read_tabix_genes(args.tabix_times)
+
+
     all_files = []
     for codec in codecs:
         for block_size in block_sizes:
@@ -176,8 +179,6 @@ def main():
     for file in all_files:
         file_basename = os.path.basename(file).replace(ext, '')
         files_gene_times[file_basename], file_gene_records[file_basename] = plot_utils.read_new_genes(file)
-
-    tabix_times, tabix_hits = plot_utils.read_tabix_genes(args.tabix_times)
 
     file_sizes = plot_utils.get_file_sizes(args.compressed_dir,
                                            file_names,

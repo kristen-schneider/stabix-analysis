@@ -1,6 +1,9 @@
 from collections import defaultdict
 import os
 
+from docutils.nodes import header
+
+
 def read_colors(colors_file):
     # codec, color
     colors = {}
@@ -29,29 +32,6 @@ def read_tabix_times_data(tabix_times_file):
 
     return tabix_data
 
-def read_tabix_genes(tabix_results_genes):
-    tabix_genes_times = defaultdict(dict)
-    tabix_genes_hits = defaultdict(dict)
-
-    f = open(tabix_results_genes, 'r')
-    for line in f:
-        L = line.strip().split(',')
-        if 'GWAS file: ' in L[0]:
-            gwas_file = line.strip().split(',')[0].split(':')[1].strip()
-            tabix_genes_times[gwas_file] = {}
-            tabix_genes_hits[gwas_file] = {}
-        elif 'Gene:' in L[0]:
-            gene_name, gene_time = line.split(',')
-            gene_name = gene_name.split(':')[1].strip()
-            gene_time = float(gene_time.split(':')[1].strip())
-            tabix_genes_times[gwas_file][gene_name] = gene_time
-            tabix_genes_hits[gwas_file][gene_name] = 0
-        else:
-            tabix_genes_hits[gwas_file][gene_name] += 1
-            continue
-
-    return tabix_genes_times, tabix_genes_hits
-
 def read_new_times_data(new_times_file):
     # GWAS_FILE,New_Time(us)
     new_data = {}
@@ -69,30 +49,47 @@ def read_new_times_data(new_times_file):
 
     return new_data
 
-def read_new_genes(new_results_genes):
+def read_genes(gene_results_file,
+               micro):
     gene_times = defaultdict()
     gene_records = defaultdict()
-    with open(new_results_genes, 'r') as f:
+    gene_pval_hits = defaultdict()
+    with open(gene_results_file, 'r') as f:
         single_file_time = 0.0
         for line in f:
             if 'GWAS' in line:
                 file_name = line.strip().split(':')[1].strip().split('/')[-1].replace('.tsv', '').strip()
                 gene_times[file_name] = {}
                 gene_records[file_name] = {}
+                gene_pval_hits[file_name] = {}
             elif 'Gene:' in line:
                 gene = line.strip().split(',')[0].strip().split(':')[1].strip()
                 # if time in line, end of gene, get time and add to single_file_time
                 if 'time' in line:
-                    gene_time = float(line.strip().split(',')[1].strip().split(':')[1].strip()) / 1e6
-                    gene_times[file_name][gene] = gene_time
-                else:
-                    gene_records[file_name][gene] = 0
+                    if gene == 'SLC39A9':
+                        x = 1
+                    if micro:
+                        gene_time = float(line.strip().split(',')[1].strip().split(':')[1].strip()) / 1e6
+                        pval_hit = int(line.strip().split(',')[2].strip().split(':')[1].strip())
+                    else:
+                        gene_time = float(line.strip().split(',')[1].strip().split(':')[1].strip())
+                        pval_hit = -1
+                    try:
+                        gene_times[file_name][gene] += gene_time
+                        gene_pval_hits[file_name][gene] += pval_hit
+                    except KeyError:
+                        gene_times[file_name][gene] = gene_time
+                        gene_pval_hits[file_name][gene] = pval_hit
+                    # if gene not in gene_records, add it with value 0
+                    if gene not in gene_records[file_name]:
+                        gene_records[file_name][gene] = 0
             else:
-                gene_records[file_name][gene] += 1
-                continue
+                try:
+                    gene_records[file_name][gene] += 1
+                except KeyError:
+                    gene_records[file_name][gene] = 1
     f.close()
-
-    return gene_times, gene_records
+    return gene_times, gene_records, gene_pval_hits
 
 def assign_bin(size, bins):
     for i, b in enumerate(bins):
@@ -108,13 +105,24 @@ def get_gene_size(bed_file):
             gene = L[3]
             start = int(L[1])
             end = int(L[2])
-            if end - start == 0:
-                if gene not in gene_sizes:
-                    gene_sizes[gene] = 0
-                else:
-                    continue
-            gene_sizes[gene] = end - start
+            try:
+                gene_sizes[gene] += end - start
+            except KeyError:
+                gene_sizes[gene] = end - start
     return gene_sizes
+
+# get gene_instances from bed file
+def get_gene_instances(bed_file):
+    gene_instances = {}
+    with open(bed_file, 'r') as f:
+        for line in f:
+            L = line.strip().split()
+            gene = L[3]
+            try:
+                gene_instances[gene] += 1
+            except KeyError:
+                gene_instances[gene] = 1
+    return gene_instances
 
 def get_file_sizes(compressed_files_dir,
                    file_names,
@@ -125,6 +133,7 @@ def get_file_sizes(compressed_files_dir,
     for file in os.listdir(compressed_files_dir):
         file_name = file.replace('.tsv', '')
         if file_name in file_names:
+            file_sizes[file_name] = {}
             for block_size in block_sizes:
                 for codec in codecs:
                     full_file_name = file_name + '_' + str(block_size) + '_' + codec
@@ -135,11 +144,174 @@ def get_file_sizes(compressed_files_dir,
                     gen_size = os.path.getsize(os.path.join(compressed_files_dir + full_file_name, 'genomic.idx')) / 1e9
                     pval_size = os.path.getsize(os.path.join(compressed_files_dir + full_file_name, 'pval.idx')) / 1e9
 
-                    file_sizes[full_file_name] = {'tsv': tsv_size,
-                                             'bgz': bgz_size,
-                                             'tbi': tbi_size,
-                                             'new': new_size,
-                                             'gen': gen_size,
-                                             'pval': pval_size}
-
+                    try:
+                        file_sizes[file_name][block_size][codec] = {'tsv': tsv_size,
+                                                                    'bgz': bgz_size,
+                                                                    'tbi': tbi_size,
+                                                                    'new': new_size,
+                                                                    'gen': gen_size,
+                                                                    'pval': pval_size}
+                    except KeyError:
+                        file_sizes[file_name][block_size] = {codec: {'tsv': tsv_size,
+                                                                    'bgz': bgz_size,
+                                                                    'tbi': tbi_size,
+                                                                    'new': new_size,
+                                                                    'gen': gen_size,
+                                                                    'pval': pval_size}}
     return file_sizes
+
+def check_gene_records(tabix_gene_records,
+                       lzr_gene_records):
+
+    # assert that there are the same number of genes in both records
+    assert len(tabix_gene_records) == len(lzr_gene_records)
+
+    for gene in tabix_gene_records.keys():
+        if lzr_gene_records[gene] != tabix_gene_records[gene]:
+            print('Gene:', gene)
+            print('--LZR:', lzr_gene_records[gene])
+            print('--Tabix:', tabix_gene_records[gene])
+
+def read_bed_file(bed_file):
+    bed_dict = {}
+    with open(bed_file, 'r') as f:
+        for line in f:
+            L = line.strip().split()
+            try:
+                chrm = int(L[0])
+            except ValueError:
+                if L[0] == 'X':
+                    chrm = 23
+                elif L[0] == 'Y':
+                    chrm = 24
+                elif L[0] == 'MT':
+                    chrm = 25
+            bp_start = int(L[1])
+            bp_end = int(L[2])
+            gene = L[3]
+            try:
+                bed_dict[gene].append((chrm, bp_start, bp_end))
+            except KeyError:
+                bed_dict[gene] = [(chrm, bp_start, bp_end)]
+    return bed_dict
+
+def read_genomic_index(genomic_index_file):
+    chrm_index = {}
+    with open(genomic_index_file, 'r') as f:
+        header = f.readline()
+        for line in f:
+            L = line.strip().split(',')
+            block_ID = int(L[0])
+            chrm = int(L[1])
+            bp_start = int(L[2])
+            try:
+                chrm_index[chrm].append(bp_start)
+            except KeyError:
+                chrm_index[chrm] = [bp_start]
+
+    return chrm_index
+
+def get_bp_index_from_genomic_index(genomic_index,
+                                   gene_locations):
+    # get the index of the base pair in the genomic index
+    # get the list of base pairs for the chromosome
+    gene_blocks = {}
+    for gene in gene_locations:
+        # if gene == 'NLGN4Y':
+        #     x = gene_locations[gene]
+        #     z = 1
+        single_gene_blocks = 0
+        for location in gene_locations[gene]:
+            chrm = location[0]
+            bp_start = location[1]
+            bp_end = location[2]
+            start_idx = None
+            end_idx = None
+
+            # if the chromosome is Y, or MT (for current file these are not in the gwas)
+            if chrm == 24 or chrm == 25:
+                break
+            # find the index of the start base pair in the genomic index
+            # then find the index of the end base pair in the genomic index
+            # then add the indexes to the list
+
+            for i, bp, in enumerate(genomic_index[chrm]):
+                if bp > bp_start:
+                    start_idx = i - 1
+                    break
+            if start_idx == None:
+                # if chrm 1, start index = 0
+                if chrm == 1:
+                    start_idx = 0
+                    break
+                # if chrm > 1, start index = previous chrm end index
+                else:
+                    start_idx = -1
+                    break
+
+            for i, bp in enumerate(genomic_index[chrm]):
+                if bp > bp_end:
+                    end_idx = i - 1
+                    break
+            if end_idx == None:
+                end_idx = len(genomic_index[chrm]) - 1
+
+            single_gene_blocks += end_idx - start_idx + 1
+        gene_blocks[gene] = single_gene_blocks
+    return gene_blocks
+
+def read_column_decompression(decompression_times_file,
+                              block_size,
+                              decom_times,
+                              comp_sizes):
+
+    # col_idx_data_type = {0: 'int', 1: 'int',
+    #                      2: 'string', 3: 'string', 8: 'string',
+    #                      4: 'float', 5: 'float', 6: 'float', 7: 'float'}
+
+    # 0 and 1 = int
+    ints = [0, 1]
+    # 2, 3, 38-43 = string
+    strings = [2, 3]
+    strings += list(range(38, 44))
+    # 4-37 = float
+    floats = list(range(4, 38))
+    col_idx_data_type = {}
+    for i in ints:
+        col_idx_data_type[i] = 'int'
+    for i in strings:
+        col_idx_data_type[i] = 'string'
+    for i in floats:
+        col_idx_data_type[i] = 'float'
+
+
+
+
+    with open(decompression_times_file, 'r') as f:
+        # read 2 headers
+        f.readline()
+        f.readline()
+        for line in f:
+            L = line.strip().split(',')
+            column_idx = L[1]
+            time = int(L[2])
+            size = int(L[3])
+            codec = L[4]
+            data_type = col_idx_data_type[int(column_idx)]
+
+            try:
+                decom_times[block_size][codec][data_type].append(time)
+                comp_sizes[block_size][codec][data_type].append(size)
+            except KeyError:
+                try:
+                    decom_times[block_size][codec][data_type] = [time]
+                    comp_sizes[block_size][codec][data_type] = [size]
+                except KeyError:
+                    try:
+                        decom_times[block_size][codec] = {data_type: [time]}
+                        comp_sizes[block_size][codec] = {data_type: [size]}
+                    except KeyError:
+                        decom_times[block_size] = {codec: {data_type: [time]}}
+                        comp_sizes[block_size] = {codec: {data_type: [size]}}
+
+    return decom_times, comp_sizes

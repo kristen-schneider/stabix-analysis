@@ -2,7 +2,6 @@ import argparse
 from collections import defaultdict
 import matplotlib.pyplot as plt
 import os
-import seaborn as sns
 from matplotlib.patches import Patch
 from matplotlib.lines import Line2D
 
