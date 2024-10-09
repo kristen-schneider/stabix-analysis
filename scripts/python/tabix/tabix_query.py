@@ -55,11 +55,11 @@ def main():
             for start, end in genes[gene][chrom]:
                 start_time = time.time()
                 records = tabix_utils.tabix_query_with_threshold(chrom,
-                                                                       start,
-                                                                       end,
-                                                                       gwas_file,
-                                                                       p_value,
-                                                                       p_value_threshold)
+                                                                 start,
+                                                                 end,
+                                                                 gwas_file,
+                                                                 p_value,
+                                                                 p_value_threshold)
                 if records:
                     total_sig_snps += len(records)
                     total_sig_genes += 1
