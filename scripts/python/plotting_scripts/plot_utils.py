@@ -315,3 +315,140 @@ def read_column_decompression(decompression_times_file,
                         comp_sizes[block_size] = {codec: {data_type: [size]}}
 
     return decom_times, comp_sizes
+
+
+def read_pvals(pvals_file):
+    pvals_dict = {}
+    with open(pvals_file, 'r') as f:
+        header = f.readline()
+        for line in f:
+            L = line.strip().split(',')
+            file = L[0]
+            pval = float(L[1])
+            try:
+                pvals_dict[file].append(pval)
+            except KeyError:
+                pvals_dict[file] = [pval]
+    return pvals_dict
+
+
+def write_all_files_table(all_gene_times,
+                          all_gene_records,
+                          all_gene_pval_hits,
+                          all_genomic_indexes,
+                          compressed_files,
+                          out_names,
+                          block_sizes,
+                          genes,
+                          out):
+
+        # file_name: {tsv, bgz, tbi, xxx, gen, pval, full_ratio, tbx_ratio, genes, snps, wins, speedup}
+        data_dict = defaultdict()
+
+        file_name_traits = {'continuous-103220-both_sexes': 'shellfish intake',
+                            'phecode-282.5-both_sexes': 'sickle cell anemia',
+                            'categorical-20096-both_sexes-2': 'size of red wine glass drunk',
+                            'phecode-696.4-both_sexes': 'psoriasis',
+                            'continuous-50-both_sexes-irnt': 'standing height',
+                            'continuous-30130-both_sexes-irnt': 'monocyte count',
+                            'phecode-250.2-both_sexes': 'type 2 diabetes',
+                            'phecode-250-both_sexes': 'diabetes mellitus',
+                            'categorical-1210-both_sexes-1210': 'snoring',
+                            'categorical-20116-both_sexes-0': 'smoking status'}
+
+        # write header
+        # uncompressed tsv, bgz, tbi, xxx, gen, pval, full_comp_ratio, tbi_comp_ratio,
+        # num_sig_genes, num_sig_snps, %_xxx_wins, avg_tbx_speedup
+        out = open(out, 'w')
+        for file in compressed_files.keys():
+            for block_size in block_sizes:
+                for name in out_names:
+                    data_dict[file] = {}
+                    print(file)
+                    tabix_times = []
+                    xxx_times = []
+                    num_sig_genes_tabix = 0
+                    num_sig_genes_xxx = 0
+                    num_sig_snps_tabix = 0
+                    num_sig_snps_xxx = 0
+                    xxx_wins = 0
+                    avg_tbx_speedup = 0.0
+
+                    # get file sizes and comp ratios
+                    data_dict[file]['tsv'] = compressed_files[file]['tsv'] / 1e9
+                    data_dict[file]['bgz'] = compressed_files[file]['bgz'] / 1e9
+                    data_dict[file]['tbi'] = compressed_files[file]['tbi'] / 1e6
+                    data_dict[file]['xxx'] = compressed_files[file]['xxx'] / 1e9
+                    data_dict[file]['gni'] = compressed_files[file]['gen'] / 1e6
+                    data_dict[file]['pvi'] = compressed_files[file]['pval'] / 1e6
+                    # full / (bgz + tbi + xxx)
+                    full_comp_ratio = (compressed_files[file]['tsv'] /
+                                       (compressed_files[file]['xxx'] + compressed_files[file]['gen'] + compressed_files[file]['pval']))
+                    # (bgz + tbi) / (bgz + tbi + xxx)
+                    tbi_comp_ratio = ((compressed_files[file]['bgz'] + compressed_files[file]['tbi']) /
+                                      (compressed_files[file]['xxx'] + compressed_files[file]['gen'] + compressed_files[file]['pval']))
+                    data_dict[file]['full_comp_ratio'] = full_comp_ratio
+                    data_dict[file]['tbi_comp_ratio'] = tbi_comp_ratio
+
+                    # get gene data
+                    for g in genes:
+                        tabix_time = all_gene_times[file]['tabix'][g]
+                        xxx_time = all_gene_times[file][block_size][name][g]
+                        tabix_times.append(tabix_time)
+                        xxx_times.append(xxx_time)
+
+                        if xxx_time < tabix_time:
+                            xxx_wins += 1
+
+                        # significant genes:
+                        if all_gene_records[file][block_size][name][g] > 0:
+                            num_sig_genes_xxx += 1
+                        if all_gene_records[file]['tabix'][g] > 0:
+                            num_sig_genes_tabix += 1
+
+                        # significant snps:
+                        num_sig_snps_tabix += all_gene_records[file]['tabix'][g]
+                        num_sig_snps_xxx += all_gene_records[file][block_size][name][g]
+
+                        ## check...
+                        if all_gene_records[file]['tabix'][g] != all_gene_records[file][block_size][name][g]:
+                            print('--', file, g, all_gene_records[file][block_size][name][g], all_gene_records[file]['tabix'][g])
+
+                        # percent speedup
+                        avg_tbx_speedup += (tabix_time - xxx_time) / tabix_time
+
+                    # num sig genes and snps
+                    data_dict[file]['sig_genes'] = num_sig_genes_xxx
+                    data_dict[file]['sig_snps'] = num_sig_snps_xxx
+
+                    # get percent xxx wins
+                    xxx_wins = (xxx_wins / len(genes)) * 100
+                    data_dict[file]['xxx_wins'] = xxx_wins
+
+                    # get average speedup
+                    avg_tbx_speedup = (avg_tbx_speedup / len(genes)) * 100
+                    data_dict[file]['avg_tbx_speedup'] = avg_tbx_speedup
+
+        # write data
+        # print to 4 decimal places
+        out.write('trait, uncompressed tsv(GB), bgz(GB), tbi(MB), xxx(GB), gen(MB), pval(MB), tsv_comp_ratio, bgz-tbi_comp_ratio, num_sig_genes, num_sig_snps, %_xxx_wins, %_avg_speedup\n')
+        for file in data_dict.keys():
+            out.write(file_name_traits[file] + ',')
+            out.write(str(round(data_dict[file]['tsv'], 4)) + ',')
+            out.write(str(round(data_dict[file]['bgz'], 4)) + ',')
+            out.write(str(round(data_dict[file]['tbi'], 4)) + ',')
+            out.write(str(round(data_dict[file]['xxx'], 4)) + ',')
+            out.write(str(round(data_dict[file]['gni'], 4)) + ',')
+            out.write(str(round(data_dict[file]['pvi'], 4)) + ',')
+            out.write(str(round(data_dict[file]['full_comp_ratio'], 4)) + ',')
+            out.write(str(round(data_dict[file]['tbi_comp_ratio'], 4)) + ',')
+            out.write(str(data_dict[file]['sig_genes']) + ',')
+            out.write(str(data_dict[file]['sig_snps']) + ',')
+            out.write(str(round(data_dict[file]['xxx_wins'], 4)) + ',')
+            out.write(str(round(data_dict[file]['avg_tbx_speedup'], 4)) + '\n')
+
+        out.close()
+
+
+
+

@@ -34,11 +34,16 @@ def plot_column_by_data_type_scatter(column_sizes,
             for codec in column_sizes[block_size]:
                 if codec not in codecs:
                     codecs.append(codec)
-                ax[i, j].scatter(column_sizes[block_size][codec][data_type],
+                try:
+                    ax[i, j].scatter(column_sizes[block_size][codec][data_type],
                                  column_decompression_times[block_size][codec][data_type],
                                  color=colors[codec],
                                  s=20,
                                  alpha=0.5)
+                    # log scale y-axis
+                    ax[i, j].set_yscale('log')
+                except KeyError:
+                    print(f'No data for {block_size} {codec} {data_type}')
 
 
     # LABELING
@@ -81,10 +86,9 @@ def main():
     args = parse_args()
     colors = pltu.read_colors(args.colors)
 
-    # file_names = ['continuous-103220-both_sexes']
-    file_names = ['continuous-30130-both_sexes-irnt']
-    codecs = ['bz2', 'xz']
-    block_sizes = ['2000', '5000', '10000']
+    file_names = ['continuous-103220-both_sexes']
+    codecs = ['bz2', 'deflate', 'xz', 'zlib', 'zstd', 'combo-fbb']
+    block_sizes = ['1000', '2000', '5000', '10000', 'map']
 
     decomp_col_times = defaultdict(dict)
     comp_col_sizes = defaultdict(dict)
