@@ -1,6 +1,5 @@
 import argparse
 import os, sys
-import matplotlib.pyplot as plt
 from collections import defaultdict
 
 sys.path.append('scripts/python/plotting_scripts/')
@@ -24,6 +23,8 @@ def main():
     bed = args.bed
     out = args.out
 
+    genes = pltut.read_bed_file(bed)
+
     # gene: [(pval_hits, num_records, time)]
     all_gene_info = {}
     # all_gene_records = {}
@@ -33,17 +34,25 @@ def main():
         if 'continuous' in f:
             query_file = data + f + '/' + f.replace('_2000_combo-xzb','') + '.query'
             basename = query_file.split('/')[-1].replace('.query','')
+            if 'kristen' in f:
+                x = 1
             try:
                 gene_times, gene_records, gene_pval_hits = pltut.read_genes(query_file, True)
-                for gene in gene_times[basename]:
+                for gene in genes:
                     try:
                         all_gene_info[gene].append((gene_pval_hits[basename][gene],
                                                     gene_records[basename][gene],
                                                     gene_times[basename][gene]))
                     except KeyError:
-                        all_gene_info[gene] = [(gene_pval_hits[basename][gene],
-                                                gene_records[basename][gene],
-                                                gene_times[basename][gene])]
+                        try:
+                            all_gene_info[gene] = [(gene_pval_hits[basename][gene],
+                                                    gene_records[basename][gene],
+                                                    gene_times[basename][gene])]
+                        except KeyError:
+                            try:
+                                all_gene_info[gene].append((0, 0, 0))
+                            except KeyError:
+                                all_gene_info[gene] = [(0, 0, 0)]
                 print('done: ', f)
             except FileNotFoundError:
                 continue
