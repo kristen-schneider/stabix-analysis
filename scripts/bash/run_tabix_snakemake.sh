@@ -15,8 +15,8 @@
 #. /opt/conda/etc/profile.d/conda.sh
 #conda activate snakemake
 
-tabix_snakemake="/Users/krsc0813/PycharmProjects/gwas-analysis/scripts/bash/tabix_time.smk"
-config_file="/Users/krsc0813/PycharmProjects/gwas-analysis/tabix_test/tabix_config.yml"
+tabix_snakemake="scripts/bash/tabix_time.smk"
+config_file="test/test_tabix.yml"
 
 #start_slice=$(date +%s.%3N)
 snakemake \

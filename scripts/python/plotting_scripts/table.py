@@ -24,7 +24,7 @@ def main():
     bed = args.bed
     out = args.out
 
-    out_names = ['combo-xzb']
+    out_names = ['combo-xbb']
     block_sizes = ['2000']
 
     files = pltut.read_pvals(data + '/pvals.txt').keys()

@@ -373,6 +373,7 @@ def write_all_files_table(all_gene_times,
                     num_sig_snps_xxx = 0
                     xxx_wins = 0
                     avg_tbx_speedup = 0.0
+                    avg_tbx_ryan_speedup = 0.0
 
                     # get file sizes and comp ratios
                     data_dict[file]['tsv'] = compressed_files[file]['tsv'] / 1e9
@@ -416,6 +417,9 @@ def write_all_files_table(all_gene_times,
 
                         # percent speedup
                         avg_tbx_speedup += (tabix_time - xxx_time) / tabix_time
+                        # ryan speedup
+                        avg_tbx_ryan_speedup += tabix_time / xxx_time
+
 
                     # num sig genes and snps
                     data_dict[file]['sig_genes'] = num_sig_genes_xxx
@@ -427,13 +431,22 @@ def write_all_files_table(all_gene_times,
 
                     # get average speedup
                     avg_tbx_speedup = (avg_tbx_speedup / len(genes)) * 100
+                    avg_tbx_ryan_speedup = (avg_tbx_ryan_speedup / len(genes))
                     data_dict[file]['avg_tbx_speedup'] = avg_tbx_speedup
+                    data_dict[file]['avg_tbx_ryan_speedup'] = avg_tbx_ryan_speedup
 
         # write data
         # print to 4 decimal places
-        out.write('trait, uncompressed tsv(GB), bgz(GB), tbi(MB), xxx(GB), gen(MB), pval(MB), tsv_comp_ratio, bgz-tbi_comp_ratio, num_sig_genes, num_sig_snps, %_xxx_wins, %_avg_speedup\n')
+        out.write('trait,no. sig genes,no. sig SNPs,'
+                  'avg. STABIX speedup over tabix,% STABIX wins,'
+                  'uncompressed (GB),bgzip (GB),tabix index(MB),STABIX (GB),STABIX gen. index (MB), STABIX stat. index (MB),'
+                  'full STABIX comp. ratio,STABIX:bgzip+tabix comp ratio\n')
         for file in data_dict.keys():
             out.write(file_name_traits[file] + ',')
+            out.write(str(data_dict[file]['sig_genes']) + ',')
+            out.write(str(data_dict[file]['sig_snps']) + ',')
+            out.write(str(round(data_dict[file]['avg_tbx_ryan_speedup'], 4)) + ',')
+            out.write(str(round(data_dict[file]['xxx_wins'], 4)) + ',')
             out.write(str(round(data_dict[file]['tsv'], 4)) + ',')
             out.write(str(round(data_dict[file]['bgz'], 4)) + ',')
             out.write(str(round(data_dict[file]['tbi'], 4)) + ',')
@@ -441,11 +454,8 @@ def write_all_files_table(all_gene_times,
             out.write(str(round(data_dict[file]['gni'], 4)) + ',')
             out.write(str(round(data_dict[file]['pvi'], 4)) + ',')
             out.write(str(round(data_dict[file]['full_comp_ratio'], 4)) + ',')
-            out.write(str(round(data_dict[file]['tbi_comp_ratio'], 4)) + ',')
-            out.write(str(data_dict[file]['sig_genes']) + ',')
-            out.write(str(data_dict[file]['sig_snps']) + ',')
-            out.write(str(round(data_dict[file]['xxx_wins'], 4)) + ',')
-            out.write(str(round(data_dict[file]['avg_tbx_speedup'], 4)) + '\n')
+            out.write(str(round(data_dict[file]['tbi_comp_ratio'], 4)) + '\n')
+
 
         out.close()
 

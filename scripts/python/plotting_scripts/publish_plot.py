@@ -1,10 +1,13 @@
 from cProfile import label
-
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
+from matplotlib.cm import ScalarMappable
 import pandas as pd
 from PIL.ImageColor import colormap
+from scipy.constants import alpha
 from setuptools.command.rotate import rotate
+from matplotlib import cm
+from matplotlib import colors as mcolors
 
 import plot_utils as pltut
 
@@ -47,7 +50,7 @@ def plot_scatter_sizes(file_sizes,
                           # plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=colors['tbi'], markersize=10, label='tbi'),
                             plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=colors['xxx'], markersize=10, label='xxx')]
                             # plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=colors['gen'], markersize=10, label='gen + pval')]
-    ax.legend(legend_elements, ['bgz + tbx', 'xxx + gidx + pidx'], loc='upper left', title='Compression Types', frameon=False)
+    ax.legend(legend_elements, ['bgz + tbi', 'STABIX + gidx + sidx'], loc='upper left', title='Compression Types', frameon=False)
 
     # spines
     plt.gca().spines['top'].set_visible(False)
@@ -87,7 +90,7 @@ def plot_bar_sizes(file_sizes,
 
     colors = {'tsv': 'grey',
               'bgz': 'darkorange', 'tbi': 'red',
-              'xxx': 'cadetblue', 'gen': 'red', 'pval': 'red'}
+              'xxx': 'darkblue', 'gen': 'red', 'pval': 'red'}
 
     for f in file_sizes:
         x = x_centers.pop(0)
@@ -126,7 +129,7 @@ def plot_bar_sizes(file_sizes,
     legend_elements = [plt.Rectangle((0, 0), 1, 1, fc=colors['tsv']),
                           plt.Rectangle((0, 0), 1, 1, fc=colors['bgz']),
                           plt.Rectangle((0, 0), 1, 1, fc=colors['xxx'])]
-    labels = ['tsv (none)', 'bgz + tbi', 'xxx + gidx + sidx']
+    labels = ['tsv (uncompressed)', 'bgzip + tabix', 'STABIX + gidx + sidx']
     ax.legend(legend_elements, labels, loc='upper left',
               title='Compression Types',
               fontsize=7,
@@ -152,15 +155,14 @@ def plot_all_files_gene_times(all_gene_times,
                                 genes,
                                 out):
 
-    option = 'size'
+    option = 'snps'
 
     # create main axies, leaving 25% of the space at top and on right for the histograms
     # fig, ax1 = plt.subplots(1, 1,
     #                         figsize=(8, 5), dpi=300)
-    fig = plt.figure(figsize=(6, 5), dpi=300)
-    ax1 = fig.add_gridspec(1, 1, left=0.2, right=0.9, top=0.9, bottom=0.1).subplots()
-
-    # ax1 = fig.add_gridspec(1, 1, left=0.1, right=0.75, top=0.75, bottom=0.1).subplots()
+    fig = plt.figure(figsize=(8, 8), dpi=300)
+    # ax1 = fig.add_gridspec(1, 1, left=0.1, right=0.9, top=0.9, bottom=0.1).subplots()
+    ax1 = fig.add_gridspec(1, 1, left=0.1, right=.75, top=.75, bottom=0.1).subplots()
     # ax1.set(aspect=0.55)
 
 
@@ -168,7 +170,7 @@ def plot_all_files_gene_times(all_gene_times,
     # x-axis: tabix gene times
     # y-axis: gene names
     # file_size_data = []
-    custom_colorbar = 'viridis'
+    custom_colorbar = 'plasma'
     cmap = plt.get_cmap(custom_colorbar)
 
     sizes_bins = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
@@ -199,8 +201,8 @@ def plot_all_files_gene_times(all_gene_times,
                 # if (f == 'phecode-282.5-both_sexes'):
                 #         # or f == 'icd10-E11-both_sexes'
                 #         or f =='phecode-282.5-both_sexes'):
-                if 'continuous-50-both_sexes-irnt' not in f: #!= 'icd10-E11-both_sexes':
-                    continue
+                # if 'continuous-50-both_sexes-irnt' not in f: #!= 'icd10-E11-both_sexes':
+                #     continue
                 print(f)
 
                 try:
@@ -226,10 +228,10 @@ def plot_all_files_gene_times(all_gene_times,
                                              'pval': all_gene_pval_hits[f][block_size][name][g],
                                              'snps': all_gene_records[f][block_size][name][g]}
 
-                        if y[g] > 0.1:
-                            # label gene
-                            ax1.text(x[g], y[g], plot_options_gene[option],
-                                     fontsize=6, ha='center', va='center')
+                        # if y[g] > 0.1 and y[g] > x[g]:
+                        #     # label gene
+                        #     ax1.text(x[g], y[g]+0.005, plot_options_gene[option],
+                        #              fontsize=6, ha='center', va='center')
 
                     #     # label = file_sizes[f]['tsv'] / 1e9 to 3 decimal places
                     #     # label = '{:.3f}'.format(file_sizes[f]['tsv'] / 1e9)
@@ -244,58 +246,65 @@ def plot_all_files_gene_times(all_gene_times,
 
     print('done getting data...')
     print('plotting scatter plot...')
+
     # plot scatter plot
-    png = ax1.scatter(x_data, y_data,
-                      label=label, alpha=0.5,
+    # hb = ax1.hexbin(x_data, y_data, gridsize=50, cmap=cmap,
+    #                mincnt=1, bins='log')
+
+    sct = ax1.scatter(x_data, y_data,
+                      label=label, alpha=0.1,
                       # color='cadetblue')
-                      # c = plot_options_data[option], cmap=custom_colorbar)
+                      ## c = plot_options_data[option], cmap=custom_colorbar)
                       c=plot_options_data[option],
                       cmap=custom_colorbar,
                       norm=mcolors.BoundaryNorm(plot_options[option]['bins'], cmap.N, clip=True))
 
-    # # plot histogram of xxx times on right rotated
-    # # left=0.1, right=0.75, top=.9, bottom=0.1
-    # # 0.75: This is the left position of the inset axes, meaning the inset starts at 75% of the width of the figure from the left.
-    # # 0: This is the bottom position of the inset axes, meaning it starts at the bottom of the figure (0%).
-    # # 0.25: This is the width of the inset axes, meaning it occupies 25% of the figure's width.
-    # # 1: This is the height of the inset axes, meaning it occupies the full height of the figure (100%).
-    # print('plotting histograms...')
-    # ax_histy = ax1.inset_axes([1.0, 0, 0.25, 1], sharey=ax1)
-    # ax_histy.hist(y_data, bins=100,
-    #               orientation='horizontal',
-    #               color='cadetblue')
-    # ax_histy.set_xticks([])
-    # plt.setp(ax_histy.get_yticklabels(), visible=False)
-    # ax_histy.set_xscale('log')
-    # ax_histy.set_xticks([10, 1000, 100000])
-    # ax_histy.spines['top'].set_visible(False)
-    # ax_histy.spines['right'].set_visible(False)
-    #
-    # # plot histograms of tabix times on top
-    # ax_histx = ax1.inset_axes([0, 1.0, 1, 0.25], sharex=ax1)
-    # ax_histx.hist(x_data, bins=100,
-    #                 color='cadetblue')
-    # ax_histx.set_yticks([])
-    # plt.setp(ax_histx.get_xticklabels(), visible=False)
-    # ax_histx.set_yscale('log')
-    # ax_histx.set_yticks([10, 1000, 100000])
-    # ax_histx.spines['top'].set_visible(False)
-    # ax_histx.spines['right'].set_visible(False)
+    # plot histogram of xxx times on right rotated
+    # left=0.1, right=0.75, top=.9, bottom=0.1
+    # 0.75: This is the left position of the inset axes, meaning the inset starts at 75% of the width of the figure from the left.
+    # 0: This is the bottom position of the inset axes, meaning it starts at the bottom of the figure (0%).
+    # 0.25: This is the width of the inset axes, meaning it occupies 25% of the figure's width.
+    # 1: This is the height of the inset axes, meaning it occupies the full height of the figure (100%).
+    print('plotting histograms...')
+    ax_histy = ax1.inset_axes([1, 0, .25, 1], sharey=ax1)
+    ax_histy.hist(y_data, bins=100,
+                  orientation='horizontal',
+                  color='darkblue')
+    ax_histy.set_xticks([])
+    plt.setp(ax_histy.get_yticklabels(), visible=False)
+    ax_histy.set_xscale('log')
+    ax_histy.set_xticks([10, 1000, 100000])
+    ax_histy.spines['top'].set_visible(False)
+    ax_histy.spines['right'].set_visible(False)
+
+    # plot histograms of tabix times on top
+    ax_histx = ax1.inset_axes([0, 1.0, 1, 0.25], sharex=ax1)
+    ax_histx.hist(x_data, bins=100,
+                    color='darkblue')
+    ax_histx.set_yticks([])
+    plt.setp(ax_histx.get_xticklabels(), visible=False)
+    ax_histx.set_yscale('log')
+    ax_histx.set_yticks([10, 1000, 100000])
+    ax_histx.spines['top'].set_visible(False)
+    ax_histx.spines['right'].set_visible(False)
 
     print('plotting colorbar...')
     # plot colorbar, scale to the right of the scatter plot
     # make colorbar
-    cbar = fig.colorbar(png, ax=ax1,
-                        orientation='vertical')
-                        # pad=-0.15,
-                        # shrink=0.2)
-                        # label='Decompressed File Size (GB)',
-                        # fontsize=8)
+    # cbar = fig.colorbar(sct, ax=ax_histy)
+    cbar = fig.colorbar(ScalarMappable(cmap=sct.get_cmap(), norm=sct.norm), ax=ax_histy)
+    # cbar = fig.colorbar(sct)
+    #                     # orientation='vertical')#,
+    #                     # pad=-0.15,
+    #                     # shrink=0.8)
+    #                     # label='counts in bin')
+    # # cbar.set_label('counts in bin', fontsize=12)
     cbar.set_label(plot_options[option]['colorbar'], fontsize=8)  # Change the font size here
-    cbar.ax.tick_params(labelsize=8)
-    # cbar.ax.yaxis.set_label_coords(-1.5, 0.5)
-    ## left, bottom, width, height
-    # cbar.ax.set_position([0.65, 0.5, 0.3, 0.4])
+    # # cbar.ax.tick_params(labelsize=8)
+    cbar.ax.yaxis.set_label_coords(-1., 0.5)
+    # # ## left, bottom, width, height
+    cbar.ax.set_position([0.65, 0.25, 0.3, 0.4])
+    # cbar.ax.set_alpha(0.9)
 
     # plot a line with slope 1
     ax1.plot([0, 0.12], [0, 0.12], color='black', linestyle='--')
@@ -332,14 +341,16 @@ def plot_all_files_gene_times(all_gene_times,
     #     y_pos -= 0.05
 
     ax1.set_xlabel('Tabix decompression time (s)')
-    ax1.set_ylabel('XXX decompression time (s)')
+    ax1.set_ylabel('STABIX decompression time (s)')
     # fig.suptitle('Gene Decompression Times', fontsize=12, fontweight='bold')
 
     plt.gca().spines['top'].set_visible(False)
     plt.gca().spines['right'].set_visible(False)
 
     # plt.tight_layout()
-    plt.savefig(out + 'height_' + plot_options[option]['save'])
+    plt.savefig(out + plot_options[option]['save'])
+    # plt.savefig(out + 'hexbin-' + plot_options[option]['save'])
+    # plt.savefig(out + 'height_' + plot_options[option]['save'])
 
 
 

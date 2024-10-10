@@ -38,7 +38,7 @@ def plot_compare_times_genes(file,
                       'SLC39A9': 'red'}
 
     fig, ax = plt.subplots(len(block_sizes), len(codecs),
-                           figsize=(55, 40), dpi=300,
+                           figsize=(32, 18), dpi=300,
                            sharex=False, sharey=False)
     # fig.suptitle('Tabix vs. XXX\nsearch times by gene', fontweight='bold')
     for i, block_size in enumerate(block_sizes):
@@ -63,7 +63,7 @@ def plot_compare_times_genes(file,
                 gene_sizes_data.append(gene_sizes[gene])
                 # instances_data.append(gene_instances[gene])
                 indexes_data.append(gene_indexes[gene])
-                speedup = (data_dict_times['tabix'][gene] - data_dict_times[codec][block_size][gene]) / data_dict_times['tabix'][gene]
+                speedup = data_dict_times['tabix'][gene] / data_dict_times[codec][block_size][gene]
                 avg_speedup.append(speedup)
 
                 if data_dict_pval_hits[codec][block_size][gene] == 0:
@@ -90,37 +90,34 @@ def plot_compare_times_genes(file,
             # add text to plot which shows file size ratios
             comp_ratio = bgz_tbi_size / xxx_size
             # xxx_to_uncompressed = xxx_size / uncompressed_size
-            text = 'Comp Ratio): {:.4f}'.format(comp_ratio)
-            ax[i, j].text(0.1, 0.95, text,
+            text = 'Comp. Ratio: {:.4f}'.format(comp_ratio)
+            ax[i, j].text(0.06, 0.95, text,
                           transform=ax[i, j].transAxes,
                           horizontalalignment='left',
                           verticalalignment='top',
                           fontsize=10,
-                          bbox=dict(facecolor='none', alpha=0.5, edgecolor='black'))
-
-            # add text to plot which shows percent xxx wins
-            text = '% XXX Wins: {:.4f}'.format((xxx_wins / (xxx_wins + tabix_wins)) * 100)
-            ax[i, j].text(0.1, 0.85, text,
-                            transform=ax[i, j].transAxes,
-                            horizontalalignment='left',
-                            verticalalignment='top',
-                            fontsize=10,
-                            bbox=dict(facecolor='none', alpha=0.5, edgecolor='black'))
+                          bbox=dict(facecolor='none', alpha=0.5, edgecolor='none'))
 
             # add text to plot which shows avg speedup search time
-            avg_speedup_percent = np.mean(avg_speedup) * 100
-            text = 'Avg Speedup: {:.4f}'.format(avg_speedup_percent)
-            ax[i, j].text(0.1, 0.75, text,
+            avg_speedup_file = np.mean(avg_speedup)
+            text = 'Avg Speedup: {:.4f}'.format(avg_speedup_file)
+            ax[i, j].text(0.06, 0.85, text,
                           transform=ax[i, j].transAxes,
                           horizontalalignment='left',
                           verticalalignment='top',
                           fontsize=10,
-                          bbox=dict(facecolor='none', alpha=0.5, edgecolor='black'))
+                          bbox=dict(facecolor='none', alpha=0.5, edgecolor='none'))
 
+            # add text to plot which shows percent xxx wins
+            text = '% STABIX Wins: {:.4f}'.format((xxx_wins / (xxx_wins + tabix_wins)) * 100)
+            ax[i, j].text(0.06, 0.75, text,
+                          transform=ax[i, j].transAxes,
+                          horizontalalignment='left',
+                          verticalalignment='top',
+                          fontsize=10,
+                          bbox=dict(facecolor='none', alpha=0.5, edgecolor='none'))
 
-
-
-            hits = ax[i, j].scatter(x_data, y_data, s=20, alpha=0.7)
+            hits = ax[i, j].scatter(x_data, y_data, s=20, alpha=0.1, color='darkblue')
 
             # for g in curious:
             #     # plot a large date point
@@ -129,10 +126,10 @@ def plot_compare_times_genes(file,
             #                         c=curious_colors[g], s=500, alpha=0.7)
 
             # draw line y = x
-            ax[i, j].plot([0, 0.1], [0, 0.1], color='black', linestyle='--')
+            ax[i, j].plot([0, 0.05], [0, 0.05], color='black', linestyle='--')
 
-            ax[i, j].set_xlabel('Tabix Search Time (s)')
-            ax[i, j].set_ylabel('XXX Search Time (s)')
+            # ax[i, j].set_xlabel('Tabix Search Time (s)', fontsize=10)
+            # ax[i, j].set_ylabel('STABIX Search Time (s)', fontsize=10)
 
             # format
             ax[i, j].spines['top'].set_visible(False)
@@ -145,14 +142,17 @@ def plot_compare_times_genes(file,
 
     # add text at top of each row with codec name
     for i, codec in enumerate(codecs):
-        title = 'Codec: {}'.format(codec)
-        ax[0, i].set_title(title, fontsize=10, fontweight='bold')
+        title = 'Codec Comb.:\n{}'.format(codec)
+        ax[0, i].set_title(title, fontsize=16, fontweight='bold')
+        ax[2, i].set_xlabel('Tabix Search Time (s)', fontsize=10)
     # add text to left of each row with block size
     for i, block_size in enumerate(block_sizes):
         text = 'Block Size: {}'.format(block_size)
         ax[i, 0].text(-0.3, 0.5, 'Block Size: ' + block_size, fontsize=16, fontweight='bold',
                       rotation=90, verticalalignment='center', horizontalalignment='center',
                       transform=ax[i, 0].transAxes)
+        ax[i, 0].set_ylabel('STABIX Search Time (s)', fontsize=10)
+
 
     # plt.tight_layout()
     plt.savefig(out_png)
@@ -167,7 +167,7 @@ def plot_compare_times_files(tabix_times,
     # xxx times are in microseconds (c++ chrono::high_resolution_clock::now())
 
     # scatter: x = tabix time, y = xxx time, color = number of hits
-    fig, ax = plt.subplots(1, 1, figsize=(10, 6), dpi=300)
+    fig, ax = plt.subplots(1, 1, figsize=(20, 8), dpi=300)
 
     for gwas_file, (genes, snps, tabix_time) in tabix_times.items():
         if gwas_file not in xxx_times:
@@ -208,9 +208,11 @@ def plot_compare_times_files(tabix_times,
 def main():
     args = parse_args()
     file_names = ['continuous-103220-both_sexes']
-    # file_names = ['continuous-103220-both_sexes', 'continuous-30130-both_sexes-irnt']
+    # codecs = ['bz2', 'xz', 'zlib', 'combo-xzb']
+    # block_sizes = ['1000', '2000', '10000']
     codecs = ['bz2', 'deflate', 'xz', 'zlib', 'zstd', 'combo-fbb', 'combo-xbb', 'combo-xzb']
     block_sizes = ['1000', '2000', '5000', '10000', 'map']
+
     gene_sizes = plot_utils.get_gene_size(args.bed)
     gene_instances = plot_utils.get_gene_instances(args.bed)
 

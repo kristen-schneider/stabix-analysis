@@ -1,0 +1,10 @@
+__default__:
+    job-name: "{rule}"
+    partition: long
+    time: 14400
+    gpu: gpu:0
+    nodes: 1
+    ntasks-per-node: 16
+    mem: 128gb
+    output: "/scratch/Users/krsc0813/gwas-run/out/{rule}-%j.out"
+    error: "/scratch/Users/krsc0813/gwas-run/err/{rule}-%j.err"
