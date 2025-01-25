@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 def main():
     tabix_files = glob.glob('/Users/krsc0813/Library/CloudStorage/OneDrive-UCB-O365/Desktop/gwas-run/tabix_output/*')
     stabix_files = glob.glob('/Users/krsc0813/Library/CloudStorage/OneDrive-UCB-O365/Desktop/gwas-run/stabix_output/*')
+    name = 'tabix'
 
     genes_with_sig = set()
 
@@ -77,7 +78,7 @@ def main():
     axs_max = max([ax.get_xlim()[1] for ax in axs])
 
     # super title
-    fig.suptitle('Speedup of STABIX over Tabix', fontsize=12, fontweight='bold')
+    fig.suptitle(f'Speedup of STABIX over {name.capitalize()}', fontsize=12, fontweight='bold')
 
     for ax in axs:
         #ax.set_xlim(axs_min, axs_max)

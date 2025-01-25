@@ -10,13 +10,15 @@ import plot_utils as plot_utils
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='Plot Tabix vs. XXX Results')
+    parser = argparse.ArgumentParser(description='Plot vs. XXX Results')
     parser.add_argument('--root', type=str, required=True,
                         help='dir with data')
     parser.add_argument('--bed', type=str, required=True,
                         help='bed file genes')
     parser.add_argument('--out', type=str, required=True,
                         help='output directory for plots')
+    parser.add_argument('--name', type=str, required=False,
+                        help='tabix/sqlite/hdf5')
     return parser.parse_args()
 
 def plot_compare_times_genes(file,
@@ -26,7 +28,8 @@ def plot_compare_times_genes(file,
                              data_dict_times, data_dict_records, data_dict_pval_hits,
                              gene_sizes,
                              gene_indexes,
-                             out_png):
+                             out_png,
+                             name='tabix'):
 
     colormap = 'viridis'
     colormap_bins = [0, 1, 2, 3, 4, 5, 20, 60]
@@ -144,7 +147,7 @@ def plot_compare_times_genes(file,
     for i, codec in enumerate(codecs):
         title = 'Codec Comb.:\n{}'.format(codec)
         ax[0, i].set_title(title, fontsize=16, fontweight='bold')
-        ax[2, i].set_xlabel('Tabix Search Time (s)', fontsize=10)
+        ax[2, i].set_xlabel(f'{name.capitalize()} Search Time (s)', fontsize=10)
     # add text to left of each row with block size
     for i, block_size in enumerate(block_sizes):
         text = 'Block Size: {}'.format(block_size)
@@ -162,7 +165,8 @@ def plot_compare_times_files(tabix_times,
                              xxx_times,
                              num_genes,
                              pval,
-                             out):
+                             out,
+                             name='tabix'):
     # tabix times are in seconds (python time.time())
     # xxx times are in microseconds (c++ chrono::high_resolution_clock::now())
 
@@ -176,9 +180,9 @@ def plot_compare_times_files(tabix_times,
         num_hits = genes
         ax.scatter(tabix_time, xxx_time, alpha=0.7)
 
-    ax.set_xlabel('Tabix Search Time (s)')
+    ax.set_xlabel(f'{name.capitalize()} Search Time (s)')
     ax.set_ylabel('XXX Search Time (s)')
-    ax.set_title('Tabix vs. XXX Search Times', fontweight='bold')
+    ax.set_title(f'{name.capitalize()} vs. XXX Search Times', fontweight='bold')
 
     # add text box about the data
     num_gwas_files = len(tabix_times)
@@ -202,11 +206,12 @@ def plot_compare_times_files(tabix_times,
     plt.tight_layout()
 
     # save
-    plt.savefig(os.path.join(out, 'tabix_vs_xxx_search_times.png'))
+    plt.savefig(os.path.join(out, f'{name}_vs_xxx_search_times.png'))
 
 
 def main():
     args = parse_args()
+    name = args.name or 'tabix'
     file_names = ['continuous-103220-both_sexes']
     # codecs = ['bz2', 'xz', 'zlib', 'combo-xzb']
     # block_sizes = ['1000', '2000', '10000']
@@ -233,7 +238,7 @@ def main():
     #                                                           gene_locations)
 
     for file in file_names:
-        tabix_file = os.path.join(tabix_dir, file + '_tabix_output.txt')
+        tabix_file = os.path.join(tabix_dir, file + f'_{name}_output.txt')
         (tabix_gene_times,
          tabix_gene_records,
          tabix_pval_hits) = plot_utils.read_genes(tabix_file, False)
@@ -303,7 +308,8 @@ def main():
                                  data_dict_records,
                                  data_dict_pval_hits,
                                  gene_sizes, gene_instances,
-                                 out_png)
+                                 out_png,
+                                 name)
 
     # plot_compare_times_files(tabix_times_file,
     #                          xxx_times_file,

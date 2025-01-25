@@ -8,13 +8,15 @@ import plot_utils as pltut
 import publish_plot as pubplt
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='Plot Tabix vs. XXX Results')
+    parser = argparse.ArgumentParser(description='Plot vs. XXX Results')
     parser.add_argument('--data', type=str, required=True,
                         help='dir with data')
     parser.add_argument('--bed', type=str, required=True,
                         help='bed file genes')
     parser.add_argument('--out', type=str, required=True,
                         help='output directory for plots')
+    parser.add_argument('--name', type=str, required=False,
+                        help='tabix/sqlite/hdf5')
     return parser.parse_args()
 
 def main():
@@ -23,6 +25,7 @@ def main():
     data = args.data
     bed = args.bed
     out = args.out
+    name = args.name or 'tabix'
 
     out_names = ['combo-xzb']
     block_sizes = ['2000']
@@ -44,7 +47,7 @@ def main():
 
     for f in files:
         tabix_gene_times, tabix_gene_records, tabix_gene_pval_hits = (
-            pltut.read_genes(tabix_out_dir + f + '_tabix_output.txt', False))
+            pltut.read_genes(tabix_out_dir + f + f'_{name}.txt', False))
         all_gene_times[f] = {'tabix': tabix_gene_times[f]}
         all_gene_records[f] = {'tabix': tabix_gene_records[f]}
         all_gene_pval_hits[f] = {'tabix': tabix_gene_pval_hits[f]}
@@ -107,7 +110,8 @@ def main():
                            out_names,
                            block_sizes,
                            genes,
-                           out)
+                           out,
+                           name)
 
 
 

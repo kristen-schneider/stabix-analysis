@@ -340,7 +340,8 @@ def write_all_files_table(all_gene_times,
                           out_names,
                           block_sizes,
                           genes,
-                          out):
+                          out,
+                          name='tabix'):
 
         # file_name: {tsv, bgz, tbi, xxx, gen, pval, full_ratio, tbx_ratio, genes, snps, wins, speedup}
         data_dict = defaultdict()
@@ -438,9 +439,9 @@ def write_all_files_table(all_gene_times,
         # write data
         # print to 4 decimal places
         out.write('trait,no. sig genes,no. sig SNPs,'
-                  'avg. STABIX speedup over tabix,% STABIX wins,'
-                  'uncompressed (GB),bgzip (GB),tabix index(MB),STABIX (GB),STABIX gen. index (MB), STABIX stat. index (MB),'
-                  'full STABIX comp. ratio,STABIX:bgzip+tabix comp ratio\n')
+                  f'avg. STABIX speedup over {name},% STABIX wins,'
+                  f'uncompressed (GB),bgzip (GB),{name} index(MB),STABIX (GB),STABIX gen. index (MB), STABIX stat. index (MB),'
+                  f'full STABIX comp. ratio,STABIX:bgzip+{name} comp ratio\n')
         for file in data_dict.keys():
             out.write(file_name_traits[file] + ',')
             out.write(str(data_dict[file]['sig_genes']) + ',')
