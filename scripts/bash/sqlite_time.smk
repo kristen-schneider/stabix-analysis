@@ -1,11 +1,6 @@
 #snakemake --dryrun -s scripts/bash/tabix_time.smk --configfile data/tabix_test/tabix_config.yml
 #snakemake -s scripts/bash/tabix_time.smk --configfile data/tabix_test/tabix_config.yml --rulegraph | dot -Tpdf > dag.pdf
 
-# shell.prefix("""
-# . /Users/krsc0813/miniconda3/etc/profile.d/conda.sh
-# conda activate snakemake;
-# """)
-
 import pandas as pd
 import glob
 from os.path import basename
@@ -22,11 +17,10 @@ BGZ_FILE_NAMES = PD_MANIFEST["filename"].tolist()
 ROOT_FILE_NAMES = [basename(x).replace(".tsv.bgz", "") for x in BGZ_FILE_NAMES]
 
 BGZ_URLS = PD_MANIFEST["wget"].tolist()
-TBX_URLS = PD_MANIFEST["wget_tabix"].tolist()
 
 rule all:
     input:
-        expand(f"{config.tabix_dir}{{root_file_name}}_tabix_output.txt", root_file_name=ROOT_FILE_NAMES)
+        expand(f"{config.tabix_dir}{{root_file_name}}_sqlite_output.txt", root_file_name=ROOT_FILE_NAMES)
 
 rule download_bgz:
     message: "Downloading bgz files."
@@ -43,37 +37,22 @@ rule download_bgz:
         {params.url}
         """
 
-rule download_tabix:
-    message: "Downloading tabix files."
-    input:
-        bgz_file_name=f"{config.gwas_dir}{{root_file_name}}.tsv.bgz"
-    output:
-        tbx_file_name=f"{config.gwas_dir}{{root_file_name}}.tsv.bgz.tbi"
-    params:
-        url=lambda wildcards: TBX_URLS[ROOT_FILE_NAMES.index(wildcards.root_file_name)]
-    shell:
-        """
-        cd {config.gwas_dir}
-        {params.url}
-        """
-
-rule tabix_search:
-    message: "Searching files with tabix (applying pvalue threshold)."
+rule search:
+    message: "Searching files with sqlite (applying pvalue threshold)."
     input:
         bgz_file_name=f"{config.gwas_dir}{{root_file_name}}.tsv.bgz",
-        tbx_file_name=f"{config.gwas_dir}{{root_file_name}}.tsv.bgz.tbi",
         pval_indexes=f"{config.pval_indexes}"
     output:
-        f"{config.tabix_dir}{{root_file_name}}_tabix_output.txt"
+        f"{config.tabix_dir}{{root_file_name}}_sqlite_output.txt"
     shell:
+        # TODO: reusing the "tabix_dir" is wack
         """
         mkdir -p {config.gwas_dir}
         conda activate snakemake
         cd {config.root_dir}
-        python {config.scripts_dir}tabix_query.py \
+        python {config.scripts_dir}sqlite_query.py \
         --bed {config.bed_file} \
         --gwas {input.bgz_file_name} \
         --pval_threshold {config.pval_threshold} \
-        --pval_index {input.pval_indexes} \
-        --out {config.tabix_dir}{wildcards.root_file_name}_tabix_output.txt
+        --out {config.tabix_dir}{wildcards.root_file_name}_sqlite_output.txt
         """
