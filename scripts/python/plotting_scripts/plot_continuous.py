@@ -11,7 +11,7 @@ import plot_utils as pltut
 import publish_plot as pubplt
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='Plot Tabix vs. XXX Results')
+    parser = argparse.ArgumentParser(description='Plot vs. XXX Results')
     parser.add_argument('--continuous', type=str, required=True,
                         help='continuous output data file')
     parser.add_argument('--out', type=str, required=True,

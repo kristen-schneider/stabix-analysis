@@ -15,6 +15,8 @@ def parse_args():
                         help='bed file genes')
     parser.add_argument('--out', type=str, required=True,
                         help='output directory for output table')
+    parser.add_argument('--name', type=str, required=False,
+                        help='tabix/sqlite/hdf5')
     return parser.parse_args()
 
 def main():
@@ -23,6 +25,7 @@ def main():
     data = args.data
     bed = args.bed
     out = args.out
+    name = args.name or 'tabix'
 
     out_names = ['combo-xbb']
     block_sizes = ['2000']
@@ -45,7 +48,7 @@ def main():
 
     for f in files:
         tabix_gene_times, tabix_gene_records, tabix_gene_pval_hits = (
-            pltut.read_genes(tabix_out_dir + f + '_tabix_output.txt', False))
+            pltut.read_genes(tabix_out_dir + f + f'_{name}_output.txt', False))
         all_gene_times[f] = {'tabix': tabix_gene_times[f]}
         all_gene_records[f] = {'tabix': tabix_gene_records[f]}
         all_gene_pval_hits[f] = {'tabix': tabix_gene_pval_hits[f]}
@@ -102,7 +105,8 @@ def main():
                                 out_names,
                                 block_sizes,
                                 genes,
-                                out + 'table.csv')
+                                out + 'table.csv',
+                                name)
 
 if __name__ == '__main__':
     main()

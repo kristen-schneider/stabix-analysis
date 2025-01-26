@@ -129,7 +129,7 @@ def plot_bar_sizes(file_sizes,
     legend_elements = [plt.Rectangle((0, 0), 1, 1, fc=colors['tsv']),
                           plt.Rectangle((0, 0), 1, 1, fc=colors['bgz']),
                           plt.Rectangle((0, 0), 1, 1, fc=colors['xxx'])]
-    labels = ['tsv (uncompressed)', 'bgzip + tabix', 'STABIX + gidx + sidx']
+    labels = ['tsv (uncompressed)', f'bgzip + {name}', 'STABIX + gidx + sidx']
     ax.legend(legend_elements, labels, loc='upper left',
               title='Compression Types',
               fontsize=7,
@@ -153,7 +153,8 @@ def plot_all_files_gene_times(all_gene_times,
                                 out_names,
                                 block_sizes,
                                 genes,
-                                out):
+                                out,
+                                name='tabix'):
 
     option = 'snps'
 
@@ -340,7 +341,7 @@ def plot_all_files_gene_times(all_gene_times,
     #     #         verticalalignment='top')
     #     y_pos -= 0.05
 
-    ax1.set_xlabel('Tabix decompression time (s)')
+    ax1.set_xlabel(f'{name.capitalize()} decompression time (s)')
     ax1.set_ylabel('STABIX decompression time (s)')
     # fig.suptitle('Gene Decompression Times', fontsize=12, fontweight='bold')
 

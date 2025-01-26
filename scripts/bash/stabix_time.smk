@@ -1,7 +1,7 @@
-shell.prefix("""
-. /Users/krsc0813/miniconda3/etc/profile.d/conda.sh
-conda activate snakemake;
-""")
+# shell.prefix("""
+# # . /Users/krsc0813/miniconda3/etc/profile.d/conda.sh
+# conda activate snakemake;
+# """)
 
 import pandas as pd
 import glob
@@ -18,9 +18,6 @@ BGZ_FILE_NAMES = PD_MANIFEST["filename"].tolist()
 
 # remove the .tsv.bgz extension
 ROOT_FILE_NAMES = [basename(x).replace(".tsv.bgz", "") for x in BGZ_FILE_NAMES]
-
-BGZ_URLS = PD_MANIFEST["wget"].tolist()
-TBX_URLS = PD_MANIFEST["wget_tabix"].tolist()
 
 rule all:
     input:

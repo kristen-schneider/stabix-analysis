@@ -6,7 +6,7 @@ import plot_utils as plot_utils
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='Plot Tabix Results')
+    parser = argparse.ArgumentParser(description='Plot Results')
     parser.add_argument('--tabix_results', type=str, required=True,
                         help='tabix search results')
     parser.add_argument('--new_results', type=str, required=True,
